@@ -20,10 +20,14 @@ or
 .Op Ar args...
 .Pp
 or in an executable file:
-.Bd -literal -offset indent
-#!/command/execlineb [ -qwWpPS<em>nmin</em> ]
-script
+.\" Horrible kludge to get appropriate alignment.
+.Ss \&
+#!/command/execlineb
+.Op Fl qwWpPS Ns Ar nmin
+.Bd -ragged -compact
+.Ar script
 .Ed
+.\" End kludge.
 .Sh DESCRIPTION
 .Nm
 is a command launcher: it reads a file, turns that file into a command line,
@@ -38,7 +42,8 @@ i.e. a system command line, with the parsed script.
 If the
 .Ar argv
 is empty,
-.Nm exits 0. </li>
+.Nm
+exits 0.
 .Ss Environment management phase
 .Bl -tag -width x
 .It Pushing the current stack frame
@@ -52,7 +57,7 @@ options are set:
 .Nm
 pushes
 .Po
-\&.cf
+cf.\&
 .Xr execline-pushenv 7
 .Pc
 the current positional parameters, i.e. environment variables that
@@ -149,7 +154,8 @@ The
 .Ql \et ,
 .Ql \en ,
 .Ql \ev ,
-.Ql \ef , and
+.Ql \ef ,
+and
 .Ql \er
 sequences are recognized in quoted strings, and are converted to the
 ASCII numbers 7, 8, 9, 10, 11, 12 and 13 respectively.
@@ -302,7 +308,7 @@ variable (as well as the
 and
 .Fl W
 options to
-.Nm
+.Nm Ns
 ) will also modify the behaviour of the
 .Fl S Ar nmin
 and
@@ -376,14 +382,9 @@ option will bypass positional parameter handling
 .Em completely :
 the environment will not be pushed, and positional parameters will be
 ignored.
-.Bd -literal -offset indent
-execlineb -P -c \(dqscript\(dq
-.Ed
-.Pp
+.Ql execlineb -P -c \(dq Ns Ar script Ns \(dq
 is equivalent to, but more efficient than,
-.Bd -literal -offset indent
-execlineb -c \(dqemptyenv -P script\(dq
-.Ed
+.Ql execlineb -c \(dqemptyenv -P Ar script Ns \(dq
 .Pp
 You should use the
 .Fl P
@@ -400,14 +401,9 @@ substitute the positional parameters - up to at least
 - but
 .Em will not
 push nor set environment variables.
-.Bd -literal -offset indent
-execlineb -S3 -c \(dqscript\(dq
-.Ed
-.Pp
+.Ql  execlineb -S3 -c \(dq Ns Ar script Ns \(dq
 is equivalent to, but more efficient than,
-.Bd -literal -offset indent
-execlineb -c \(dqelgetpositionals -P3 emptyenv -P script\(dq
-.Ed
+.Ql execlineb -c \(dqelgetpositionals -P3 emptyenv -P Ar script Ns \(dq
 .Pp
 See
 .Xr execline-pushenv 7
