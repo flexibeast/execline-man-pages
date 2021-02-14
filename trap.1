@@ -1,0 +1,222 @@
+.Dd February 14, 2021
+.Dt TRAP 1
+.Os
+.Sh NAME
+.Nm trap
+.Nd trap signals and run a variety of commands according to the signals caught
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl x
+.Bd -ragged -compact
+{
+.Ed
+.Bd -ragged -compact
+.Oo
+SIGTERM
+{
+.Ar progsigterm...
+}
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+quit
+{
+.Ar progsigquit
+\&...
+}
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+1
+{
+.Ar progsighup
+\&...
+}
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+default
+{
+.Ar progdefault
+\&...
+}
+.Oc
+.Ed
+.Bd -ragged -compact
+\&...
+.Ed
+.Bd -ragged -compact
+}
+.Ed
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads a sequence of directives in a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+It expects at least one directive.
+.Pp
+Each directive is a keyword followed by a block.
+.Pp
+The keyword can be the special word
+.Ql timeout ,
+a signal name (case-insensitive, with or without the
+.Ql SIG
+prefix), or a signal number.
+The block following it is a command line to run when the specified
+event occurs.
+.Pp
+.Nm
+sets traps for the various directives it reads.
+A trap for
+.Dv SIGTERM
+will be triggered when the
+.Nm
+program receives a
+.Dv SIGTERM .
+A
+.Ql default
+trap will be used for any signal that is not caught by another trap.
+.Pp
+It spawns a child executing
+.Ar prog... .
+.Pp
+It sets the
+.Ev \&!
+environment variable to the pid of the
+.Ar prog...
+process, and the
+.Ev SIGNAL
+environment variable to the trapped signal.
+.Pp
+Whenever it catches a signal, it spawns the program described in the
+corresponding directive.
+It will not spawn a program for the same signal twice: if the first
+subprocess is still active when another instance of the same signal
+arrives, this second instance is ignored.
+.Pp
+When
+.Ar prog...
+exits,
+.Nm
+exits with an approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc
+of the same exit code.
+.Pp
+Programs defined in command line directives can start with
+.Ql importas \&! \&!
+.Po
+cf.\&
+.Xr importas 1
+.Pc
+to retrieve the pid of
+.Ar prog
+in
+.Ql $! .
+If they need the signal number, which can be the case in
+.Ql default
+directives, they can for instance use
+.Ql multisubstitute { importas \&! \&! importas SIGNAL SIGNAL }
+.Po
+cf.\&
+.Xr multisubstitute 1
+.Pc
+to get both
+.Ql $!
+and
+.Ql $SIGNAL
+substitutions.
+.Pp
+The
+.Fl x
+option is basically a shortcut for a
+.Ql default { multisubstitute { importas \&! \&! importas SIGNAL SIGNAL } kill -$SIGNAL $! }
+directive.
+.Pp
+.Ql trap
+is a standard shell builtin, with similar functionality.
+It is more idiomatic, and probably more efficient, to use that builtin
+in shell scripts, and to only use the
+.Nm
+program in execline scripts.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl x
+Forward signals.
+If this option is given, any signal that
+.Nm
+receives and that is not explicitly trapped will be sent to
+.Ar prog .
+By default,
+.Nm
+does not forward any signals, and does not ignore them either - for
+instance a
+.Dv SIGTERM ,
+unless caught by a
+.Ql SIGTERM
+directive, will kill the
+.Nm
+process (and leave
+.Ar prog
+running).
+With the
+.Fl x
+option, without a
+.Ql SIGTERM
+directive, a
+.Dv SIGTERM
+will still be caught by
+.Nm ,
+that will send it to
+.Ar prog .
+Note that if a
+.Ql default
+directive is present, this option does nothing.
+.El
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr execlineb 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr importas 1 ,
+.Xr multisubstitute 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr execline-block 7 ,
+.Xr execline-exitcodes 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/trap.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

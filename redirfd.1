@@ -1,0 +1,173 @@
+.Dd February 14, 2021
+.Dt REDIRFD 1
+.Os
+.Sh NAME
+.Nm redirfd
+.Nd redirect a given file descriptor to a file, then execute a program
+.Sh SYNOPSIS
+.Nm
+.Op Fl r | Fl w | Fl u | Fl a | Fl x
+.Op Fl n
+.Op Fl b
+.Ar fd
+.Ar file
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+redirects the file descriptor number
+.Ar fd
+to
+.Ar file ,
+then
+.Xr exec 3 Ns
+s into
+.Ar prog... .
+.Bl -bullet -width x
+.It
+.Ql redirfd -r Ar n Ar file No prog...
+is roughly equivalent to
+.Ql sh -c 'exec prog... Ar n Ns < Ns Ar file'
+.It
+.Ql redirfd -w Ar n Ar file No prog...
+is roughly equivalent to
+.Ql sh -c 'exec prog... Ar n Ns > Ns Ar file'
+.It
+.Ql redirfd -u Ar n Ar file No prog...
+is roughly equivalent to
+.Ql sh -c 'exec prog... Ar n Ns <> Ns file'
+.It
+.Ql redirfd -a Ar n Ar file No prog...
+is roughly equivalent to
+.Ql sh -c 'exec prog... Ar n Ns >> Ns Ar file'
+.It
+.Ql redirfd -x Ar n Ar file No prog...
+has no portable shell equivalent.
+.El
+.Ss Special fifo handling
+The
+.Fl n
+and
+.Fl b
+options are especially useful with named pipes.
+.Bl -bullet -width x
+.It
+Opening a fifo for reading, blocking if there is no writer:
+.Bd -ragged -offset indent
+redirfd -r
+.Ar n
+.Ar fifo
+prog...
+.Ed
+.It
+Opening a fifo for reading, with instant success even if there is no
+writer, and blocking at the first attempt to read from it:
+.Bd -ragged -offset indent
+redirfd -r -nb
+.Ar n
+.Ar fifo
+prog...
+.Ed
+.It
+Opening a fifo for writing, blocking if there is no reader:
+.Bd -ragged -offset indent
+redirfd -w
+.Ar n
+.Ar fifo
+prog...
+.Ed
+.It
+Opening a fifo for writing, with instant success even if there is no
+reader:
+.Bd -ragged -offset indent
+redirfd -w -nb
+.Ar n
+.Ar fifo
+prog... .
+.Ed
+.Pp
+Warning: the first attempt to write to the fifo will raise a
+.Dv SIGPIPE
+if there is still no reader at that time.
+The named pipe semantics normally do not allow a fifo to be open for
+writing without a reading end, and you should know what you are doing
+if you're using
+.Nm
+this way.
+.El
+.Sh OPTIONS
+One and only one of the
+.Fl r ,
+.Fl w ,
+.Fl u
+.Fl a ,
+or
+.Fl x
+options must be given; the
+.Fl n
+and
+.Fl b
+options may be added in any case.
+.Bl -tag -width x
+.It Fl r
+Open
+.Ar file
+for reading.
+.It Fl w
+Open
+.Ar file
+for writing, truncating it if it already exists.
+.It Fl u
+Open
+.Ar file
+for reading and writing.
+.It Fl a
+Open
+.Ar file
+for appending, creating it if it doesn't exist.
+.It Fl x
+Open
+.Ar file
+for writing, creating it, failing if it already exists.
+.It Fl n
+Open
+.Ar file
+in non-blocking mode.
+.It Fl b
+Change mode of
+.Ar file
+after opening it:
+to non-blocking mode if the
+.Fl n
+option was not given, to blocking mode if it was.
+.El
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/redirfd.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

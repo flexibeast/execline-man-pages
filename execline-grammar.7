@@ -1,0 +1,267 @@
+.Dd February 11, 2021
+.Dt EXECLINE-GRAMMAR 7
+.Os
+.Sh NAME
+.Nm execline-grammar
+.Nd the execline language design and grammar
+.Sh DESCRIPTION
+.Ss execline principles
+Here are some basic Unix facts:
+.Bl -bullet -width x
+.It
+Unix programs are started with the
+.Xr execve 2
+system call, which takes 3 arguments: the command name (which we won't
+discuss here because it's redundant in most cases), the command line
+.Ar argv ,
+which specifies the program name and its arguments, and the environment
+.Ar envp .
+.It
+The
+.Ar argv
+structure makes it easy to read some arguments at the beginning of
+.Ar argv ,
+perform some action, then
+.Xr execve 2
+into the rest of
+.Ar argv .
+For instance, the
+.Xr nice 1
+command works that way:
+.Ql nice -10 echo blah
+will read
+.Ql nice
+and
+.Ql -10
+from the
+.Ar argv ,
+change the process'
+.Ar nice
+value, then
+.Xr exec 3
+into the command
+.Ql echo blah .
+This is called chain loading[1] by some people, and Bernstein
+chaining[2] by others.
+.It
+The purpose of the environment is to preserve some state across
+.Xr execve 2
+calls.
+This state is usually small: most programs keep their information in
+the filesystem.
+.It
+A
+.Em script
+is basically a text file whose meaning is a sequence of actions,
+i.e. calls to Unix programs, with some control over the execution
+flow.
+You need a program to interpret your script.
+Traditionally, this program is
+.Pa /bin/sh :
+scripts are written in the
+.Em shell
+language.
+.It
+The shell reads and interprets the script command after command.
+That means it must preserve a state, and stay in memory while the
+script is running.
+.It
+Standard shells have lots of built-in features and commands, so they
+are big.
+Spawning (i.e.
+.Xr fork 2 Ns
+ing then
+.Xr exec 3 Ns
+ing) a shell script takes time, because the shell program itself must
+be initialized.
+For simple programs like
+.Ql nice -10 echo blah ,
+a shell is overpowered - we only need a way to make an
+.Ar argv
+from the
+.Dq nice -10 echo blah
+string, and
+.Xr execve 2
+into that
+.Ar argv .
+.It
+Unix systems have a size limit for
+.Sm off
+.Ar argv
++
+.Ar envp ,
+.Sm on
+but it is high.
+POSIX states that this limit must not be inferior to 4KB - and most
+simple scripts are smaller than that.
+Modern systems have a much higher limit: for instance, it is 64KB on
+.Fx 4.6 ,
+and 128KB on Linux.
+.El
+.Pp
+Knowing that, and wanting lightweight and efficient scripts, I
+wondered:
+.Do
+Why should the interpreter stay in memory while the script is
+executing?
+Why not parse the script once and for all, put it all into one
+.Ar argv ,
+and just execute into that
+.Ar argv ,
+relying on external commands (which will be called from within the
+script) to control the execution flow?
+.Dc
+.Pp
+execline was born.
+.Pp
+execline is the first script language to rely
+.Em entirely
+on chain loading.
+An execline script is a single
+.Ar argv ,
+made of a chain of programs designed to perform their action then
+.Xr exec 3
+into the next one.
+.Pp
+The
+.Xr execlineb 1
+command is a
+.Em launcher :
+it reads and parses a text file, converting it to an
+.Ar argv ,
+then executes into that
+.Ar argv .
+It does nothing more.
+.Pp
+Straightforward scripts like
+.Ql nice -10 echo blah
+will be run just as they are, without the shell overhead.
+Here is what the script could look like:
+.Bd -literal -offset indent
+#!/command/execlineb -P
+nice -10
+echo blah
+.Ed
+.Pp
+More complex scripts will include calls to other execline commands,
+which are meant to provide some control over the process state and
+execution flow from inside an
+.Ar argv .
+.Ss Grammar of an execline script
+An execline script can be parsed as follows:
+.Bd -literal -offset indent
+<instruction> = <> |
+                external options <arglist> <instruction> |
+                builtin options <arglist> <blocklist> <instruction>
+<arglist> = <> | arg <arglist>
+<blocklist> = <> | <block> <blocklist>
+<block> = { <arglist> } | { <instrlist> }
+<instrlist> = <> | <instruction> <instrlist>
+.Ed
+.Pp
+(This grammar is ambivalent, but much simpler to understand than the
+non-ambivalent ones.)
+.Pp
+An execline script is valid if it reduces to an
+.Em instruction .
+.Pp
+The empty
+.Em instruction
+is the same as the
+.Xr true 1
+command: when an execline component must exec into the empty
+instruction, it exits 0.
+.Pp
+Basically, every non-empty
+.Em instruction ,
+be it
+.Do
+.Em builtin
+.Dc -
+an execline command - or
+.Do
+.Em external
+.Dc -
+a program such as
+.Xr echo 1
+or
+.Xr cp 1 -
+takes a number of arguments, the
+.Ar arglist ,
+then executes into a (possibly empty)
+.Em instruction .
+.Pp
+Some
+.Em builtin Ns
+s are special because they also take a non-empty
+.Em blocklist
+after their
+.Ar arglist .
+For instance,
+the
+.Xr foreground 1
+command takes an empty
+.Ar arglist
+and one
+.Em block :
+.Bd -literal -offset indent
+#!/command/execlineb -P
+foreground { sleep 1 } echo blah
+.Ed
+.Pp
+is a valid
+.Xr execlineb 1
+script.
+The
+.Xr foreground 1
+command uses the
+.Ql sleep 1
+.Em block
+then
+.Xr exec 3 Ns
+s into the remaining
+.Ql echo blah
+.Em instruction .
+.Ss execline features
+execline commands can perform some transformations on their
+.Ar argv ,
+to emulate some aspects of a shell.
+Here are descriptions of these features:
+.Bl -bullet -width x
+.It
+Block management
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+.It
+Variable substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc .
+.El
+.Sh SEE ALSO
+.Xr cp 1 ,
+.Xr echo 1 ,
+.Xr execlineb 1 ,
+.Xr foreground 1 ,
+.Xr nice 1 ,
+.Xr true 1 ,
+.Xr execve 2 ,
+.Xr fork 2 ,
+.Xr exec 3 ,
+.Xr execline-block 7 ,
+.Xr execline-substitute 7
+.Pp
+[1]
+.Lk https://en.wikipedia.org/wiki/Chain_loading
+.Pp
+[2]
+.Lk https://www.faqs.org/docs/artu/ch07s02.html
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/grammar.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

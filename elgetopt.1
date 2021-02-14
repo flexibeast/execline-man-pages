@@ -1,0 +1,85 @@
+.Dd February 14, 2021
+.Dt ELGETOPT 1
+.Os
+.Sh NAME
+.Nm elgetopt
+.Nd perform
+.Xr getopt 1 Ns
+-style parsing on the arguments to an execline script
+.Sh SYNOPSIS
+.Nm
+.Ar optstring
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+expects to find a valid number
+.Ar n
+of arguments in the
+.Ev \&#
+environment variable, and
+.Ar n Ns
++1 environment variables
+.Ev 0 ,
+.Ev 1 ,
+\&...,
+.Ar n .
+It exits 100 if it is not the case.
+.Pp
+.Nm
+pushes environment variables
+.Po
+cf.
+.Xr execline-pushenv 7
+.Pc
+starting with
+.Ev ELGETOPT_ .
+To get the previous values back, use
+.Ql emptyenv -o .
+.Pp
+.Nm
+looks into
+.Ev 1 ,
+.Ev 2 ,
+\&... for options, as specified by
+.Ar optstring ,
+which is a standard
+.Xr getopt 1
+string.
+.Pp
+If the
+.Fl c
+switch is recognized,
+.Nm
+sets the
+.Ev ELGETOPT_ Ns Ar c
+environment variable.
+The value of that variable is the argument to the
+.Fl c
+switch if it has one, and 1 otherwise.
+.Pp
+After setting all recognized options,
+.Nm
+makes new
+.Ev \&# ,
+.Ev 1 ,
+.Ev 2 ,
+\&...
+.Dq positional parameters
+with what remains.
+.Pp
+.Nm
+then execs into
+.Ar prog... .
+.Pp
+GNU-style options are not supported.
+.Sh SEE ALSO
+.Xr dollarat 1 ,
+.Xr getopt 1 ,
+.Xr shift 1 ,
+.Xr execline-pushenv 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/elgetopt.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

@@ -1,0 +1,88 @@
+.Dd February 14, 2021
+.Dt FOREGROUND 1
+.Os
+.Sh NAME
+.Nm foreground
+.Nd execute a sequence of commands
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+{
+.Ar prog1...
+}
+.Ar prog2...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar prog1
+in a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+It forks and executes it, then waits for it to complete.
+.Pp
+.Nm
+sets the
+.Ev \&?
+environment variable to the exit code of
+.Ar prog1 .
+If
+.Ar prog1...
+was killed by a signal, the
+.Ev \&?
+value is 256 plus the signal number.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into
+.Ar prog2... .
+.Pp
+.Nm
+is the basic sequence operator: it takes two commands and executes
+them one by one.
+execline scripts require it to wrap external commands that exit
+instead of natively supporting the
+.Dq perform some action, then execute some other program
+model.
+.Pp
+.Ql foreground Ar prog1... \(dq\(dq Ar prog2...
+is equivalent to
+.Ql sh -c 'Ar prog1... ; exec Ar prog2...' .
+.Pp
+256 and above are not valid exit codes for commands, so when the
+.Ev \&?
+environment variable contains 256 or more, it means that the previous
+command was killed by a signal.
+There is no ambiguity here, and
+.Ev \&?
+reports exactly what happened to the previous command;
+.Nm
+does not exit, so there is no need for exit code approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc .
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr execlineb 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7 ,
+.Xr execline-exitcodes 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/foreground.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

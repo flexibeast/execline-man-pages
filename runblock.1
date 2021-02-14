@@ -1,0 +1,120 @@
+.Dd February 14, 2021
+.Dt RUNBLOCK 1
+.Os
+.Sh NAME
+.Nm runblock
+.Nd execute an
+.Xr execline-block 7
+.Sh SYNOPSIS
+.Nm
+.Op Fl P
+.Op Fl n Ar argshift
+.Op Fl r
+.Ar n
+.Ar cmd...
+.Sh DESCRIPTION
+.Nm Ap
+s purpose is to help you write execline commands in the execline language.
+It can only be used inside an execline script.
+If the script has been given blocks as arguments,
+.Nm
+allows you to execute one of the blocks individually.
+It also allows you to give those blocks as a set of arguments to
+another command.
+.Pp
+.Nm
+skips the first
+.Ar argshift
+positional parameters.
+It does that to allow you to design commands that take simple
+arguments
+.Em and
+blocks.
+.Pp
+Then
+.Nm
+looks for and parses blocks
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc
+in the positional parameters.
+.Pp
+If the
+.Fl r
+option is present:
+.Nm
+skips
+.Ar n
+blocks and execs into the remaining arguments.
+.Pp
+Else it skips
+.Ar n Ns
+-1 blocks and execs into the
+.Ar n Ns
+th one.
+.Pp
+If
+.Ar cmd...
+is not empty, then instead of directly executing the block or the remainder,
+.Nm
+.Em appends
+the selected set of arguments to the
+.Ar cmd...
+command line.
+.Pp
+Normally
+.Nm
+pops
+.Po
+cf.\&
+.Xr execline-pushenv 7
+.Pc
+its environment frame before executing.
+If the
+.Fl P
+option has been given, it
+.Em does not
+pop.
+.Pp
+Of course, if the block structure doesn't match,
+.Nm
+exits 100 with an error message.
+.Ss Credits
+The
+.Nm runblock
+idea, as well as the
+.Xr ifelse 1
+idea, comes from Paul Jarc[1].
+.Sh EXAMPLES
+Suppose that we want to implement the
+.Xr ifelse 1
+command as an execline script, using the
+.Xr ifte 1
+command.
+.Nm
+allows us to do it in a simple way:
+.Bd -literal -offset indent
+#!/command/execlineb
+ifte { runblock 2 } { runblock -r 2 } runblock 1
+.Ed
+.Pp
+That's it.
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1
+.Pp
+[1]
+.Lk https://code.dogmap.org/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/runblock.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

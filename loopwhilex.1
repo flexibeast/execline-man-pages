@@ -1,0 +1,78 @@
+.Dd February 14, 2021
+.Dt LOOPWHILEX 1
+.Os
+.Sh NAME
+.Nm loopwhilex
+.Nd perform a conditional loop
+.Sh SYNOPSIS
+.Nm
+.Op Fl n
+.Op Fl o Ar okcodes | Fl x Ar breakcodes
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+runs
+.Ar prog...
+as a child process and waits for it to complete.
+.Pp
+As long as
+.Ar prog
+exits zero,
+.Nm
+runs it again.
+.Pp
+.Nm
+then exits with an approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc
+of the last
+.Ar prog
+invocation's exit code.
+.Pp
+.Ql loopwhilex Ar prog...
+is equivalent to
+.Ql loopwhilex Fl n Fl x No 0 Ar prog...
+and
+.Ql loopwhilex Fl o No 0 Ar prog...
+.Pp
+Be careful: execline
+.Sy maintains no state ,
+in particular it uses
+.Sy no real variables ,
+and environment will be of no use here since every instance of
+.Ar prog...
+runs as a separate child process.
+To avoid being stuck in an infinite loop,
+.Ar prog...
+should modify some external state - for instance, the filesystem.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl o Ar okcodes
+.Ar okcodes
+must be a comma-separated list of exit codes.
+.Nm
+will keep looping as long as
+.Ar prog
+exits with one of the codes in
+.Ar okcodes .
+.It Fl x Ar breakcodes
+Like the previous option, but with inverted meaning - the listed exit
+codes are codes that will break the loop and exit, and the unlisted
+exit codes will keep the loop running.
+.It Fl n
+Negate the test.
+This option is now redundant, and may disappear soon.
+.El
+.Sh SEE ALSO
+.Xr forbacktickx 1 ,
+.Xr forstdin 1 ,
+.Xr forx 1 ,
+.Xr execline-exitcodes 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/loopwhilex.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

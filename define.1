@@ -1,0 +1,51 @@
+.Dd February 14, 2021
+.Dt DEFINE 1
+.Os
+.Sh NAME
+.Nm define
+.Nd replace a literal with a value, then execute another program
+.Sh SYNOPSIS
+.Nm
+.Op Fl s
+.Op Fl C | Fl c
+.Op Fl N | Fl n
+.Op Fl d Ar delim
+.Ar variable
+.Ar value
+.Ar prog..
+.Sh DESCRIPTION
+.Nm
+performs substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+on
+.Ar prog... ,
+using
+.Ar variable
+as key and
+.Ar value
+as value.
+.Pp
+.Nm Ap
+s options are used to control the substitution mechanism; refer to
+.Xr execline-transform 7 .
+.Pp
+.Nm
+then execs into the modified
+.Ar prog... .
+.Sh SEE ALSO
+.Xr elgetpositionals 1 ,
+.Xr elglob 1 ,
+.Xr importas 1 ,
+.Xr multidefine 1 ,
+.Xr multisubstitute 1 ,
+.Xr execline-substitute 7 ,
+.Xr execline-transform 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/define.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

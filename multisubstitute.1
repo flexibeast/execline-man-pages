@@ -1,0 +1,180 @@
+.Dd February 14, 2021
+.Dt MULTISUBSTITUTE 1
+.Os
+.Sh NAME
+.Nm multisubstitute
+.Nd perform several substitutions at once in its
+.Ar argv ,
+then execute another program
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+{
+.Bd -ragged -compact
+.Oo
+define
+.Op Fl N | Fl n
+.Op Fl s
+.Op Fl C | Fl c
+.Op Fl d Ar delim
+.Ar variable
+.Ar value
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+importas
+.Op Fl i | Fl D Ar default
+.Op Fl N | Fl n
+.Op Fl s
+.Op Fl C | Fl c
+.Op Fl d Ar delim
+.Ar variable
+.Ar envvar
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+elglob
+.Op Fl v
+.Op Fl w
+.Op Fl s
+.Op Fl m
+.Op Fl e
+.Op Fl 0
+.Ar variable
+.Ar pattern
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+elgetpositionals
+.Op Fl P Ar sharp
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+multidefine
+.Ar value
+{
+.Ar variable...
+}
+.Oc
+.Ed
+.Ar ...
+.Bd -ragged -compact
+}
+.Ed
+.Bd -ragged -compact
+.Ar prog...
+.Ed
+.Sh DESCRIPTION
+.Nm
+reads a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc
+containing a series of substitution commands.
+It performs all those substitutions
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+on
+.Ar prog...
+in parallel.
+Check the relevant documentation page to learn about the syntax of
+each substitution command.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into the modified
+.Ar prog... .
+.Sh OPTIONS
+If an
+.Ql importas
+directive was given with the
+.Fl i
+option, and the looked up variable is undefined,
+.Nm
+will exit 100.
+.Ss Rationale
+.Sy Security
+.Pp
+.Nm
+can be used to avoid unwanted
+.Em serial substitutions .
+Consider the following script:
+.Bd -literal -offset indent
+#!/command/execlineb
+export A wrong
+define B ${A}
+importas A A
+echo ${B}
+.Ed
+.Pp
+Running it will print
+.Ql wrong ,
+because
+.Ql A
+is substituted
+.Em after
+B.
+On the contrary, the following script:
+.Bd -literal -offset indent
+#!/command/execlineb
+export A wrong
+multisubstitute
+{
+  define B ${A}
+  importas A A
+}
+echo ${B}
+.Ed
+.Pp
+will print
+.Ql ${A} ,
+because A and B are substituted at the same time.
+Serial substitution may be what you want - but when in doubt, always
+perform parallel substitution.
+.Pp
+.Sy Efficiency
+.Pp
+Substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+is a costly mechanism: the whole
+.Ar argv
+is read three times and rewritten twice.
+Serial substitution multiplies the cost by the number of
+substitutions, whereas parallel substitution pays the price only once.
+.Ss Credits
+Paul Jarc[1] first originated the idea of the
+.Nm
+command and a possible syntax.
+.Sh SEE ALSO
+.Xr define 1 ,
+.Xr elgetpositionals 1 ,
+.Xr elglob 1 ,
+.Xr execlineb 1 ,
+.Xr importas 1 ,
+.Xr multidefine 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7 ,
+.Xr execline-substitute 7
+.Pp
+[1]
+.Lk https://code.dogmap.org/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/multisubstitute.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

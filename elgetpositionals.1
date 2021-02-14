@@ -1,0 +1,162 @@
+.Dd February 14, 2021
+.Dt ELGETPOSITIONALS 1
+.Os
+.Sh NAME
+.Nm elgetpositionals
+.Nd substitute the positional parameters of an execline script
+.Sh SYNOPSIS
+.Nm
+.Op Fl P Ar sharp
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads the number
+.Ar n
+of
+.Dq positional parameters
+in the
+.Ev \&#
+environment variable.
+If that variable is not set or does not contain a valid
+.Ar n ,
+.Nm
+exits 100.
+.Pp
+.Nm
+performs some substitutions
+.Po
+cf.
+.Xr execline-substitute 7
+.Pc
+in parallel on
+.Ar prog... :
+.Bl -bullet -width x
+.It
+key:
+.Ql # ,
+value:
+.Ar n
+.It
+key:
+.Ql 0 ,
+value: the value of the
+.Ev 0
+environment variable
+.It
+key:
+.Ql 1 ,
+value: the value of the
+.Ev 1
+environment variable
+.It
+\&... and so on until
+.Ar n
+.Po
+or
+.Ar sharp
+if it is greater than
+.Ar n
+.Pc .
+Those values are never transformed.
+.It
+key:
+.Ql @ ,
+value: all values of the variables from
+.Ql 1
+to
+.Ar n .
+This value is split
+.Po
+cf.
+.Xr execline-transform 7
+.Pc
+into
+.Ar n
+words.
+.El
+.Pp
+If a variable between
+.Ql 0
+and
+.Ar n
+does not exist,
+.Nm
+exits 100.
+.Pp
+A typical argument-taking execline script will often begin this way:
+.Bd -literal -offset indent
+#!/command/execlineb
+elgetopt optstring
+elgetpositionals
+prog...
+.Ed
+.Pp
+If you are performing other substitutions that do not depend on the
+positional parameters, think about replacing the
+.Nm
+call with a
+.Xr multisubstitute 1
+call containing the
+.Ql elgetpositionals
+directive.
+.Pp
+If you are going to use the
+.Xr shift 1
+command, it is best to use
+.Xr importas 1
+to substitute the first positional parameters, then use
+.Xr shift 1 ,
+then
+.Nm .
+That way,
+.Ql $@
+will correctly be replaced by the remaining arguments.
+More generally, you should try to use
+.Nm
+as late as possible.
+.Pp
+Use
+.Xr execlineb 1 Ap
+s
+.Fl S
+switch instead of
+.Nm
+whenever you can.
+It is more efficient.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl P Ar sharp
+Substitute at least
+.Ar sharp Ns
++1 positional parameters, from 0 to
+.Fn max n sharp .
+If
+.Ar n
+<
+.Ar sharp ,
+positional parameters between
+.Ar n Ns
++1 and
+.Ar sharp
+are replaced with the empty string.
+Not having the
+.Fl P
+switch is equivalent to having
+.Ql -P 0 .
+.El
+.Sh SEE ALSO
+.Xr define 1 ,
+.Xr elglob 1 ,
+.Xr execlineb 1 ,
+.Xr importas 1 ,
+.Xr multidefine 1 ,
+.Xr multisubstitute 1 ,
+.Xr shift 1 ,
+.Xr execline-substitute 7 ,
+.Xr execline-transform 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/elgetpositionals.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

@@ -1,0 +1,99 @@
+.Dd February 14, 2021
+.Dt EMPTYENV 1
+.Os
+.Sh NAME
+.Nm emptyenv
+.Nd empty the current environment, or clean it up; then execute a program
+.Sh SYNOPSIS
+.Nm
+.Op Fl p
+.Ar prog...
+.Nm
+.Fl c
+.Ar prog...
+.Nm
+.Op Fl o
+.Op Fl P
+.Ar prog...
+.Sh DESCRIPTION
+By default,
+.Nm
+unsets all environment variables, then
+.Xr exec 3 Ns
+s into
+.Ar prog
+with its arguments.
+Options control which environment variables are unset.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl p
+Keep the
+.Ev PATH
+environment variable.
+.It Fl c
+Clean up.
+Do not empty the environment.
+Instead, remove every variable used internally by the execline
+programs, to avoid any interference with or information leakage to
+external programs.
+.It Fl o
+Pop
+.Po
+cf.\&
+.Xr execline-pushenv 7
+.Pc
+environment variables starting with
+.Ql ELGETOPT_ .
+You might want to do this before executing a final program from a
+script that uses
+.Xr elgetopt 1 .
+.It Fl P
+Pop
+.Po
+cf.\&
+.Xr execline-pushenv 7
+.Pc
+environment variables starting with
+.Ql # ,
+.Ql 0
+to
+.Ql 9 ,
+and
+.Ql EXECLINE_ .
+You might want to do this before executing a final program from a
+script launched by
+.Xr execlineb 1 .
+.El
+.Sh SEE ALSO
+.Xr elgetopt 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr execlineb 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr execline-pushenv 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/emptyenv.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

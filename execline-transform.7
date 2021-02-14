@@ -1,0 +1,253 @@
+.Dd February 10, 2021
+.Dt EXECLINE-TRANSFORM 7
+.Os
+.Sh NAME
+.Nm execline-transform
+.Nd overview of execline value transformation
+.Sh DESCRIPTION
+You can apply 3 kinds of transformations to a value which is to be
+substituted
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+for a variable: crunching, chomping and splitting.
+They always occur in that order.
+.Ss Delimiters
+The transformations work around
+.Em delimiters .
+Delimiters are the semantic bounds of the
+.Dq words
+in your value.
+.Pp
+You can use any character (except the null character, which you cannot
+use in execline scripts) as a delimiter, by giving a string consisting
+of all the delimiters you want as the argument to the
+.Fl d
+option used by substitution commands.
+By default, the string
+.Ql \ \en\er\et
+is used, which means that the default delimiters are spaces, newlines,
+carriage returns and tabs.
+.Pp
+(The
+.Xr forstdin 1
+command is a small exception: by default, it only recognizes newlines
+as delimiters.)
+.Ss Crunching
+You can tell the substitution command to merge sets of consecutive
+delimiters into a single delimiter.
+For instance, to replace three consecutive spaces, or a space and 4
+tab characters, with a single space.
+This is called
+.Em crunching ,
+and it is done by giving the
+.Fl C
+switch to the substitution command.
+The remaining delimiter will always be the first in the sequence.
+Chomping is
+.Em off
+by default, or if you give the
+.Fl c
+switch.
+.Pp
+Crunching is mainly useful when also
+.Sx Splitting .
+.Ss Chomping
+Sometimes you don't want the last delimiter in a value.
+.Em Chomping
+deletes the last character of a value if it is a delimiter.
+It is requested by giving the
+.Fl n
+switch to the substitution command.
+You can turn it off by giving the
+.Fl N
+switch.
+It is off by default unless mentioned in the documentation page of
+specific binaries.
+Note that chomping always happens
+.Em after
+crunching, which means you can use crunching+chomping to ignore, for
+instance, a set of trailing spaces.
+.Ss Splitting
+In a shell, when you write
+.Bd -literal -offset indent
+$ A='foo bar' ; echo $A
+.Ed
+.Pp
+the
+.Xr echo 1
+command is given two arguments,
+.Ql foo
+and
+.Ql bar .
+The
+.Ql $A
+value has been
+.Em split ,
+and the space between
+.Ql foo
+and
+.Ql bar
+acted as a
+.Em delimiter .
+.Pp
+If you want to avoid splitting, you must write something like
+.Bd -literal -offset indent
+$ A='foo bar' ; echo "$A"
+.Ed
+.Pp
+The doublequotes
+.Dq protect
+the spaces.
+Unfortunately, it's easy to forget them and perform unwanted splits
+during script execution - countless bugs happen because of the shell's
+splitting behaviour.
+.Pp
+execline provides a
+.Em splitting
+facility, with several advantages over the shell's:
+.Bl -bullet -width x
+.It
+Splitting is off by default, which means that substitutions
+are performed as is, without interpreting the characters in the
+value.
+In execline, splitting has to be explicitly requested
+by specifying the
+.Fl s
+option to commands that perform substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc .
+.It
+Positional parameters are never split, so that execline scripts can
+handle arguments the way the user intended to.
+To split
+.Ql $1 ,
+for instance, you have to ask for it specifically:
+.Bd -literal -offset indent
+#!/command/execlineb -S1
+define -sd" " ARG1S $1
+blah $ARG1S
+.Ed
+.Pp
+and
+.Ql $ARG1S
+will be split using the space character as only delimiter.
+.It
+Any character can be a delimiter.
+.El
+.Pp
+.Sy How it works
+.Bl -bullet -width x
+.It
+A substitution command can request that the substitution value be
+split, via the
+.Fl s
+switch.
+.It
+The splitting function parses the value, looking for delimiters.
+It fills up a structure, marking the split points, and the number
+.Ar n
+of words the value is to be split into.
+.Bl -bullet -width x
+.It
+A word is a sequence of characters in the value
+.Em terminated by a delimiter .
+The delimiter is not included in the word.
+.It
+If the value begins with
+.Ar x
+delimiters, the word list will begin with
+.Ar x
+empty words.
+.It
+The last sequence of characters in the value will be recognized as a
+word even if it is not terminated by a delimiter, unless you have
+requested
+.Sx Chomping
+and there was no delimiter at the end of the value
+.Em before
+the chomp operation - in which case that last sequence will not appear
+at all.
+.El
+.It
+The substitution rewrites the argv.
+A non-split value will be written as one word in the argv; a split
+value will be written as
+.Ar n
+separate words.
+.It
+Substitution of split values is performed recursively
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc .
+.El
+.Pp
+.Sy Decoding netstrings
+.Pp
+Netstrings[1] are a way to reliably encode strings containing
+arbitrary characters.
+execline takes advantage of this to offer a completely safe splitting
+mechanism.
+If a substitution command is given an empty delimiter string (by use
+of the
+.Ql -d \(dq\(dq
+option), the splitting function will try to interpret the value as a
+sequence of netstrings, every netstring representing a word.
+For instance, in the following command line:
+.Bd -literal -offset indent
+$ define -s -d "" A '1:a,2:bb,0:,7:xyz 123,1: ,' echo '$A'
+.Ed
+.Pp
+the
+.Xr echo 1
+command will be given five arguments:
+.Bl -bullet -width x
+.It
+the
+.Ql a
+string
+.It
+the
+.Ql bb
+string
+.It
+the empty string
+.It
+the
+.Ql xyz 123
+string
+.It
+the
+.\" 'mandoc -T lint' doesn't like this (STYLE), but it's correct.
+.Ql \ 
+string (a single space)
+.El
+.Pp
+However, if the value is not a valid sequence of netstrings, the
+substitution command will die with an error message.
+.Pp
+The
+.Xr dollarat 1
+command, for instance, can produce a sequence of netstrings (encoding
+all the arguments given to an execline script), meant to be decoded by
+a substitution command with the
+.Ql -d \(dq\(dq
+option.
+.Sh SEE ALSO
+.Xr dollarat 1 ,
+.Xr echo 1 ,
+.Xr forstdin 1 ,
+.Xr execline-substitute 7
+.Pp
+[1]
+.Lk https://cr.yp.to/proto/netstrings.txt
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/el_transform.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

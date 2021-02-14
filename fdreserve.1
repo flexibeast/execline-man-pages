@@ -1,0 +1,117 @@
+.Dd February 14, 2021
+.Dt FDRESERVE 1
+.Os
+.Sh NAME
+.Nm fdreserve
+.Nd update the environment with file descriptors that are guaranteed safe to use, then execute a program
+.Sh SYNOPSIS
+.Nm
+.Ar n
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+tries to reserve
+.Ar n
+file descriptors.
+.Pp
+.Nm
+sets the
+.Ev FD0 ,
+.Ev FD1 ,
+\&...,
+.Ev FD Ns Ar n-1
+environment variables: each FD
+.Ar i
+contains a valid file descriptor, that can be safely opened.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into
+.Ar prog
+with its arguments.
+.Ss Common use
+.Nm
+can be used when you do not want to hardcode file descriptors in your
+scripts.
+For instance, to create a pipe, you could use:
+.Bd -literal -offset indent
+#!/command/execlineb
+fdreserve 2
+multisubstitute
+{
+  importas fdr FD0
+  importas fdw FD1
+}
+piperw $fdr $fdw
+prog...
+.Ed
+.Pp
+Warning:
+.Nm
+does not allocate descriptors, it merely returns descriptors that are
+free at the time it is run.
+A program like
+.Bd -literal -offset indent
+#!/command/execlineb
+fdreserve 3
+multisubstitute
+{
+  importas fdr FD0
+  importas fdw FD1
+}
+piperw $fdr $fdw
+fdreserve 1
+multisubstitute
+{
+  importas oldfd FD2
+  importas newfd FD0
+}
+prog...
+.Ed
+.Pp
+may fail, because
+.Ar oldfd
+and
+.Ar newfd
+may be the same.
+To avoid that, you should make sure that all descriptors returned by
+.Nm
+are actually allocated before calling
+.Nm
+again.
+(Thanks to Paul Jarc[1] for having spotted that case.)
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+[1]
+.Lk https://code.dogmap.org/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/fdreserve.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

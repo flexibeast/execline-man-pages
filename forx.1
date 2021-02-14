@@ -1,0 +1,129 @@
+.Dd February 14, 2021
+.Dt FORX 1
+.Os
+.Sh NAME
+.Nm forx
+.Nd run a loop
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl E | Fl e
+.Op Fl p
+.Op Fl o Ar okcodes | Fl x Ar breakcodes
+.Ar variable
+{
+.Ar args...
+}
+.Ar loop...
+.Sh DESCRIPTION
+.Nm
+reads a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc
+and unquotes it.
+That block contains a list of
+.Ar args .
+.Pp
+For each argument
+.Ar x
+in
+.Ar args... ,
+.Nm
+runs
+.Ar loop
+as a child process, with
+.Sm off
+.Ar variable
+=
+.Ar x
+.Sm on
+added to its environment.
+.Pp
+.Nm
+then exits 0.
+.Pp
+You can start
+.Ar loop
+with
+.Ql importas -u Ar variable Ar variable
+if you want variable substitution.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl o Ar okcodes
+.Ar okcodes
+must be a comma-separated list of exit codes.
+If
+.Ar loop
+exits with one of the codes in
+.Ar okcodes ,
+.Nm
+will run the following instances of the loop, but if the exit code is
+not listed in
+.Ar okcodes ,
+.Nm
+will exit immediately with an approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc
+of the same exit code.
+.It Fl x Ar breakcodes
+Like the previous option, but with inverted meaning - the listed exit
+codes are codes that will make
+.Nm
+break the loop and exit, and the unlisted exit codes will make it keep
+looping.
+.It Fl p
+Run in parallel.
+Do not wait for an instance of
+.Ar loop...
+to exit before spawning the next one.
+.Nm
+will still wait for all instances of
+.Ar loop
+to terminate before exiting 0.
+If the
+.Fl o
+option has been given,
+.Nm
+will exit 0 if all of the exit codes are in the values listed in the
+.Ar okcodes
+list, else it will exit 1.
+If the
+.Fl x
+option has been given,
+.Nm
+will exit 0 if none of the exit codes are in the values listed in the
+.Ar breakcodes
+list, else it will exit 1.
+.It Fl e
+No autoimport.
+This is the default.
+.It Fl E
+Autoimport.
+Instead of spawning
+.Ar loop... ,
+spawn
+.Ql importas -ui Ar variable Ar variable Ar loop... .
+This substitutes
+.Ar variable
+into the command line instead of putting it into the environment.
+.El
+.Sh SEE ALSO
+.Xr execlineb 1 ,
+.Xr forbacktickx 1 ,
+.Xr forstdin 1 ,
+.Xr loopwhilex 1 ,
+.Xr execline-block 7 ,
+.Xr execline-exitcodes 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/forx.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

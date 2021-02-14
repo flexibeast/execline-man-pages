@@ -1,0 +1,88 @@
+.Dd February 14, 2021
+.Dt IFELSE 1
+.Os
+.Sh NAME
+.Nm ifelse
+.Nd perform conditional execution, with two branches
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl X
+.Op Fl n
+{
+.Ar prog1...
+} {
+.Ar prog2...
+}
+.Ar prog3...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar prog1...
+in a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+It forks and executes it, then waits for it to complete.
+.Pp
+If
+.Ar prog1
+crashes,
+.Nm
+prints an error message and exits 128 plus the number of the signal
+that killed
+.Ar prog1 .
+.Pp
+If
+.Ar prog1
+exits with a return code equal to 0,
+.Nm
+.Xr exec 3 Ns
+s into
+.Ar prog2 .
+.Pp
+Else
+.Nm
+.Xr exec 3 Ns
+s into
+.Ar prog3 .
+.Pp
+.Ql ifelse Ar prog1... No \(dq\(dq Ar prog2... No \(dq\(dq Ar prog3...
+is
+roughly equivalent to
+.Ql sh -c ' Ns Ar prog1... No && exec Ar prog2... No || exec Ar prog3...' .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl n
+Negate the test.
+.It Fl X
+Do not die if
+.Ar prog1
+crashes; treat a crash as a non-zero
+.Po
+.Dq false
+.Pc
+exit.
+.El
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr execlineb 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/ifelse.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

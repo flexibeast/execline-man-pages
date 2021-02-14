@@ -1,0 +1,100 @@
+.Dd February 14, 2021
+.Dt TRYEXEC 1
+.Os
+.Sh NAME
+.Nm tryexec
+.Nd execute into a command line, with a fallback
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl n
+.Op Fl c
+.Op Fl l
+.Op Fl a Ar argv0
+{
+.Ar prog1...
+}
+.Ar prog2...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar prog1...
+in a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+It then executes into it, completely forgetting
+.Ar prog2... .
+.Pp
+If for some reason the
+.Xr execve 2
+fails - for instance, a non-executable
+.Ar prog1 -
+then
+.Nm
+executes into
+.Ar prog2...
+instead.
+.Pp
+.Ql tryexec Ar prog1... No \(dq\(dq Ar prog2...
+would be equivalent to
+.Ql sh -c 'exec Ar prog1... No || exec Ar prog2... Ns ' ,
+if such a shell construct existed.
+Unfortunately, the shell language does not offer that functionality.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl n
+Reverse
+.Ar prog1...
+and
+.Ar prog2... Ap
+s role.
+The latter becomes the main execution path and the former becomes the
+fallback.
+.El
+.Pp
+The
+.Fl c ,
+.Fl l
+and
+.Fl a
+options have the same semantics as with the
+.Xr exec 1
+program.
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr execlineb 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr execve 2 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/tryexec.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

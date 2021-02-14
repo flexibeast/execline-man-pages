@@ -1,0 +1,195 @@
+.Dd February 14, 2021
+.Dt FORBACKTICKX 1
+.Os
+.Sh NAME
+.Nm forbacktickx
+.Nd run a program and use its output as loop elements to run another program
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl E | Fl e
+.Op Fl p | Fl o Ar okcodes | Fl x Ar breakcodes
+.Op Fl N | Fl n
+.Op Fl C | Fl c
+.Op Fl 0 | Fl d Ar delim
+.Ar variable
+{
+.Ar gen...
+}
+.Ar loop...
+.Sh DESCRIPTION
+.Nm
+reads a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc ,
+.Ar gen... ,
+and unquotes it.
+.Pp
+It runs
+.Ar gen...
+as a child process.
+.Ar gen Ap
+s output must not contain a null character.
+.Pp
+It reads
+.Ar gen Ap
+s output as it needs, splitting
+.Po
+cf.\&
+.Xr execline-transform 7
+.Pc
+it automatically.
+.Pp
+For every argument
+.Ar x
+in the split output,
+.Nm
+runs
+.Ar loop...
+as a child process, with
+.Sm off
+.Ar variable
+=
+.Ar x
+.Sm on
+added to its environment.
+.Pp
+.Nm
+then exits 0.
+.Pp
+You can start
+.Ar loop...
+with
+.Ql importas -u Ar variable Ar variable
+to perform variable substitution.
+.Nm
+is now implemented as a wrapper around the
+.Xr pipeline 1
+and
+.Xr forstdin 1
+commands, with calls to
+.Xr fdmove 1
+to ensure that
+.Ar loop...
+is called with the proper standard input.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl p
+Parallel mode.
+Do not wait for a
+.Ar loop...
+instance to finish before spawning the next one.
+.Nm
+will still wait for all instances of
+.Ar loop
+to terminate before exiting, though.
+.It Fl o Ar okcodes
+.Ar okcodes
+must be a comma-separated list of exit codes.
+If the
+.Fl p
+flag hasn't been given and
+.Ar loop
+exits with one of the codes in
+.Ar okcodes ,
+.Nm
+will run the following instances of the loop, but if the exit code is
+not listed in
+.Ar okcodes ,
+.Nm
+will exit immediately with an approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc
+of the same exit code.
+.It Fl x Ar breakcodes
+Like the previous option, but with inverted meaning - the listed exit
+codes are codes that will make
+.Nm
+break the loop and exit, and the unlisted exit codes will make it keep
+looping.
+.It Fl e
+No autoimport.
+This is the default.
+.It Fl E
+Autoimport.
+Instead of spawning
+.Ar loop... ,
+spawn
+.Ql importas -ui Ar variable Ar variable Ar loop... .
+This substitutes
+.Ar variable
+into the command line instead of putting it into the environment.
+.El
+.Pp
+Other options are similar (in name and functionality) to the switches
+passed to control a substitution mechanism[1]
+.Po
+cf.\&
+.Xr execline-transform 7
+.Pc ,
+on purpose; however,
+.Nm
+does not call the substitution mechanism and has its own semantics for
+those options.
+.Bl -tag -width x
+.It Fl N
+Store the whole line in
+.Ar variable ,
+including the terminating newline (or other delimiter).
+.It Fl n
+Chomp a terminating delimiter from the line from stdin before storing
+it into
+.Ar variable .
+This is the default.
+.It Fl C
+Crunch.
+If there is an empty line (i.e. that only contains a delimiter), do
+not call
+.Ar loop .
+If this option is given,
+.Em and
+chomping is active,
+.Em and
+the last line of stdin is not terminated by a delimiter, then this
+last line will not be processed.
+.It Fl c
+Do not crunch, call
+.Ar loop
+even if the line is empty.
+This is the default.
+.It Fl 0
+Accept null characters on its stdin, using them as delimiters.
+If this option and a
+.Fl d
+option are used simultaneously, the rightmost one wins.
+.It Fl d Ar delim
+Use the characters in string
+.Ar delim
+as delimiters for a line.
+Default is
+.Ql \en ,
+meaning the input is only split on newlines.
+.El
+.Sh SEE ALSO
+.Xr execlineb 1 ,
+.Xr fdmove 1 ,
+.Xr forstdin 1 ,
+.Xr forx 1 ,
+.Xr loopwhilex 1 ,
+.Xr pipeline 1 ,
+.Xr execline-block 7 ,
+.Xr execline-exitcodes 7 ,
+.Xr execline-transform 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/forbacktickx.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

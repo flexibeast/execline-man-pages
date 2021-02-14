@@ -1,0 +1,117 @@
+.Dd February 14, 2021
+.Dt BACKTICK 1
+.Os
+.Sh NAME
+.Nm backtick
+.Nd run a program and stores its output in an environment variable, then execute another program
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Nm
+.Op Fl i | Fl I | Fl D Ar default
+.Op Fl N | Fl n
+.Op [ -E | -e
+.Ar variable
+{
+.Ar prog1...
+}
+.Ar prog2...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar prog1...
+in an
+.Xr execline-block 7
+and unquotes it.
+.Pp
+It runs
+.Ar prog1...
+as a child process and saves its output in memory.
+This output must not contain a null character.
+.Pp
+.Nm
+.Xr exec 3 Ns
+s into
+.Ar prog2... ,
+with
+.Ar variable
+added to the environment with
+.Ar prog1... Ap
+s output as a value.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl N
+Store
+.Ar prog1... Ap
+s output as is, including the last newline, if any.
+.It Fl n
+Chomp an ending newline off
+.Ar prog1... Ap
+s output.
+This is the default.
+.It Fl e
+No autoimport.
+This is the default.
+.It Fl E
+Autoimport.
+Instead of
+.Xr exec 3 Ns
+ing into
+.Ar prog2... ,
+.Xr exec 3
+into
+.Ql importas -ui Ar variable Ar variable Ar prog2... .
+This substitutes
+.Ar variable
+into the command line instead of putting it into the environment.
+.El
+.Pp
+The other options tell
+.Nm
+what to do if
+.Ar prog1... Ap
+s output is not suitable as the contents of an environment variable
+(i.e. it contains a null character) or if
+.Ar prog1...
+crashes or exits nonzero:
+.Bl -tag -width x
+.It Fl i
+.Nm
+exits 1.
+.It Fl I
+.Ar variable
+is
+.Sy removed
+from the environment, and execution proceeds.
+.It Fl D Ar default
+The value of
+.Ar variable
+is set to
+.Ar default ,
+and execution proceeds.
+.El
+.Pp
+If none of those options are specified, the value of
+.Ar variable
+is set to whatever the start of
+.Ar prog1... Ap
+s output is, up to the first null character, or to whatever
+.Ar prog1...
+wrote before crashing; then execution proceeds.
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/backtick.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

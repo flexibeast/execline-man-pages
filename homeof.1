@@ -1,0 +1,22 @@
+.Dd February 11, 2021
+.Dt HOMEOF 1
+.Os
+.Sh NAME
+.Nm homeof
+.Nd print the home directory of a user
+.Sh SYNOPSIS
+.Nm
+.Ar user
+.Sh DESCRIPTION
+.Nm
+finds the name of
+.Ar user Ap
+s home directory, writes it on stdout, then exits 0.
+If an error occurs, it prints nothing on stdout but exits 111 with an
+explanatory message on stderr.
+.Sh SEE ALSO
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/homeof.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

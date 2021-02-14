@@ -1,0 +1,66 @@
+.Dd February 14, 2021
+.Dt FDBLOCK 1
+.Os
+.Sh NAME
+.Nm fdblock
+.Nd set or unset the
+.Dv O_NONBLOCK
+flag on a given file descriptor (which makes reading or writing non-blocking or blocking), then execute a program
+.Sh SYNOPSIS
+.Nm
+.Op Fl n
+.Ar fd
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+makes the file descriptor number
+.Ar fd
+blocking, no matter what its previous state was.
+It then execs into
+.Ar prog
+with its arguments.
+.Pp
+.Nm
+has no portable shell equivalent.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl n
+Non-blocking.
+Sets
+.Ar fd
+to non-blocking mode instead of blocking mode.
+If used on stdin (0) or stdout (1), this option will make a lot of
+command-line programs behave improperly, because most simple
+command-line programs only support blocking stdin and stdout.
+Make sure you know what you are doing.
+.El
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/fdblock.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

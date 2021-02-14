@@ -1,0 +1,122 @@
+.Dd February 14, 2021
+.Dt SHIFT 1
+.Os
+.Sh NAME
+.Nm shift
+.Nd shift the positional parameters of an execline script
+.Sh SYNOPSIS
+.Nm
+.Op Fl n Ar argn
+.Op Fl b Ar blockn
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+shifts
+.Ar argn
+positional parameters, then
+.Ar blockn
+blocks.
+It then
+.Xr exec 3 Ns
+s
+.Ar prog... .
+.Pp
+By default,
+.Ar argn
+and
+.Ar blockn
+are both zero; but if neither the
+.Fl n
+nor the
+.Fl b
+option is given, then
+.Ar argn
+is 1 and
+.Ar blockn
+is 0.
+.Pp
+.Ql shift
+is a standard shell builtin.
+Be careful if you want to use it outside of an execline script.
+.Pp
+The
+.Fl b
+option is only useful to implement execline commands in the execline
+language.
+You shouldn't normally have to use it.
+.Ss Details
+.Bl -bullet -width x
+.It
+.Nm
+reads the number of
+.Dq positional parameters
+in the
+.Ev \&#
+environment variable.
+Let
+.Ar n
+be that number.
+.It
+If the
+.Ev \&#
+environment variable is not set or does not contain a valid number, or
+one of the
+.Ev 0 ,
+.Ev 1 ,
+\&...,
+.Ar n
+environment variables is not set,
+.Nm
+exits 100 with an error message.
+.It
+.Nm
+calculates a shift value
+.Ar m ,
+corresponding to
+.Ar argn
+arguments followed by enough arguments to make
+.Ar blockn
+blocks.
+.It
+It shifts the positional parameters
+.Ar m
+times: the value of the
+.Sm off
+.Ar m
++1
+.Sm on
+variable becomes the value of the
+.Ev 1
+variable,
+.Sm off
+.Ar m
++2
+.Sm on
+becomes
+.Ev 2
+and so on, and
+.Ev \&#
+is set to
+.Sm off
+.Ar n
+-
+.Ar m
+.Sm on
+(floored at zero).
+.It
+.Nm
+then
+.Xr exec 3 Ns
+s into
+.Ar prog... .
+.El
+.Sh SEE ALSO
+.Xr dollarat 1 ,
+.Xr elgetopt 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/shift.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

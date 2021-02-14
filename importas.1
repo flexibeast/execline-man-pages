@@ -1,0 +1,120 @@
+.Dd February 14, 2021
+.Dt IMPORTAS 1
+.Os
+.Sh NAME
+.Nm importas
+.Nd replace a literal with the value of an environment variable, then execute another program
+.Sh SYNOPSIS
+.Nm
+.Op Fl i | Fl D Ar default
+.Op Fl u
+.Op Fl s
+.Op Fl C | Fl c
+.Op Fl N | Fl n
+.Op Fl d Ar delim
+.Ar variable
+.Ar envvar
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+fetches the value of
+.Ar envvar
+in the environment.
+If neither the
+.Fl D
+nor the
+.Fl i
+option is given, and
+.Ar envvar
+is undefined,
+.Sy no word
+is returned (that is different from the empty word).
+.Pp
+.Nm
+then performs variable substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+on
+.Ar prog... ,
+with
+.Ar variable
+as key and that string as value.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into the modified
+.Ar prog... .
+.Pp
+When
+.Ar envvar
+is undefined, and the
+.Fl D
+option is not given, any variable substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+with
+.Ar variable
+as the key will return no word; that is true even when the
+.Ql ${ Ns Ar variable Ns }
+form to be substituted happens in the middle of a word (with a prefix
+and/or a postfix), which means the whole word will be deleted.
+If this is not the behaviour you want, use the
+.Fl D
+option.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl D Ar default
+If this option is given and
+.Ar envvar
+is undefined, substitute
+.Ar default
+for the value of
+.Ar variable
+instead of no word.
+For instance, to substitute the empty word, use
+.Ql -D \(dq\(dq .
+.It Fl i
+Insist.
+If
+.Ar envvar
+is undefined,
+.Nm
+will not do anything; instead, it will exit 100 with an error message.
+This has precedence over any
+.Fl D
+option.
+.It Fl u
+Unexport.
+.Ar envvar
+will be removed from the environment after the substitution.
+.Ql importas -u Ar variable Ar envvar
+is equivalent to
+.Ql importas Ar variable Ar envvar No unexport Ar envvar .
+.El
+.Pp
+Other options are used to control
+the substitution mechanism
+.Po
+cf.\&
+.Xr execline-transform 7
+.Pc .
+.Sh SEE ALSO
+.Xr define 1 ,
+.Xr elgetpositionals 1 ,
+.Xr elglob 1 ,
+.Xr multidefine 1 ,
+.Xr multisubstitute 1 ,
+.Xr exec 3 ,
+.Xr execline-substitute 7 ,
+.Xr execline-transform 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/importas.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

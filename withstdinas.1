@@ -1,0 +1,117 @@
+.Dd February 14, 2021
+.Dt WITHSTDINAS 1
+.Os
+.Sh NAME
+.Nm withstdinas
+.Nd read the entirety of standard input in an environment variable, and run another program with that additional environment variable
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl i | Fl I | Fl D Ar default
+.Op Fl N | Fl n
+.Op Fl E | Fl e
+.Ar variable
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads its stdin until EOF.
+.Pp
+It then
+.Xr exec 3 Ns
+s into
+.Ar prog... ,
+with
+.Ar variable
+added to the environment; the value of
+.Ar variable
+is what was read on stdin.
+.Pp
+You can start
+.Ar prog...
+with
+.Ql importas -u Ar variable Ar variable
+to perform variable substitution.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl N
+Do not chomp an ending newline off stdin.
+.It Fl n
+Chomp an ending newline off stdin.
+This is the default.
+.It Fl e
+No autoimport.
+This is the default.
+.It Fl E
+Autoimport.
+Instead of
+.Xr exec 3 Ns
+ing into
+.Ar prog... ,
+.Xr exec 3
+into
+.Ql importas -ui Ar variable Ar variable Ar prog... .
+This substitutes
+.Ar variable
+into the command line instead of putting it into the environment.
+.El
+.Pp
+The other options tell
+.Nm
+what to do if its input is not suitable as the contents of an
+environment variable, i.e. it contains a null character:
+.Bl -tag -width x
+.It Fl i
+.Nm
+exits 1.
+.It Fl I
+.Ar variable
+is
+.Sy removed
+from the environment, and execution proceeds.
+.It Fl D Ar default
+The value of
+.Ar variable
+is set to
+.Ar default ,
+and execution proceeds.
+.El
+.Pp
+When neither of those options is given, the value of
+.Ar variable
+is set to whatever the start of the input is, up to the first null
+character; and execution proceeds.
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr execlineb 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/withstdinas.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

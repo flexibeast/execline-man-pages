@@ -1,0 +1,124 @@
+.Dd February 14, 2021
+.Dt MULTIDEFINE 1
+.Os
+.Sh NAME
+.Nm multidefine
+.Nd split a value and defines several variables at once, then execute another program
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl 0
+.Op Fl r
+.Op Fl C | Fl c
+.Op Fl N | Fl n
+.Op Fl d Ar delim
+.Ar value
+{
+.Ar variables...
+}
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc
+containing a list of variables.
+That block must not be empty.
+.Pp
+.Nm
+splits
+.Po
+cf.\&
+.Xr execline-transform 7
+.Pc
+.Ar value ,
+and performs other operations depending on the given options.
+.Pp
+.Nm
+performs parallel substitution
+.Po
+cf.\&
+.Xr execline-substitute 7
+.Pc
+on
+.Ar prog... ,
+using all of the
+.Ar variables
+in the block as keys.
+The first word in the split
+.Ar value
+is assigned to the first
+.Ar variable ,
+the second word is assigned to the second
+.Ar variable ,
+and so on.
+Every
+.Ar variable
+is substituted with exactly one word.
+.Pp
+If a
+.Ar variable
+is the empty word, then the word in the split
+.Ar value
+corresponding to its position is not substituted.
+So you can use empty words to pad the list of variables and only
+perform substition on the relevant fields.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into the modified
+.Ar prog... .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl 0
+If there are more
+.Ar variables
+in the block than there are words in the split
+.Ar value ,
+the excess variables will be replaced with zero word.
+Without this option, the excess variables are replaced with the empty
+word.
+.It Fl r
+Behave similarly to the
+.Dq read
+shell command.
+If there are more words in the split
+.Ar value
+than there are
+.Ar variables
+in the block, the last variable will be replaced with all the
+remaining words (and will be split).
+Without this option, the last variable is replaced with a single word,
+and the excess words are lost.
+.El
+.Pp
+Other options are used to control
+.Po
+cf.\&
+.Xr execline-transform 7
+.Pc
+the substitution mechanism.
+Note that the value is always split.
+.Sh SEE ALSO
+.Xr define 1 ,
+.Xr elgetpositionals 1 ,
+.Xr elglob 1 ,
+.Xr execlineb 1 ,
+.Xr importas 1 ,
+.Xr multisubstitute 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7 ,
+.Xr execline-substitute 7 ,
+.Xr execline-transform 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/multidefine.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

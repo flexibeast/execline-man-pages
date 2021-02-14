@@ -1,0 +1,98 @@
+.Dd February 14, 2021
+.Dt IFTE 1
+.Os
+.Sh NAME
+.Nm ifte
+.Nd perform a conditional alternative
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl X
+.Op Fl n
+{
+.Ar progthen...
+} {
+.Ar progelse...
+}
+.Ar progif...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar progthen...
+and
+.Ar progelse...
+in two consecutive blocks
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+.Pp
+.Nm
+runs
+.Ar progif...
+as a child process and waits for it to complete.
+.Pp
+If
+.Ar progif...
+crashes (i.e. is killed by a signal),
+.Nm
+prints an error message, then exits 128 plus the number of the signal
+that killed
+.Ar progif .
+.Pp
+If
+.Ar progif...
+exits zero,
+.Nm
+.Xr exec 3 Ns
+s into
+.Ar progthen... ,
+else it
+.Xr exec 3 Ns
+s into
+.Ar progelse... .
+.Pp
+.Nm
+is a simpler version of
+.Xr ifthenelse 1 .
+It performs
+.Em only
+conditional execution, not instruction sequence.
+.Pp
+.Ql ifthenelse { Ar progif No } { Ar progthen No } { Ar progelse No } remainder
+is the equivalent of
+.Ql foreground { ifte { Ar progthen No } { Ar progelse No } Ar progif No } remainder .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl X
+Do not exit if
+.Ar progif
+crashes; instead, proceed as if the test had returned false.
+.It Fl n
+Negate the test.
+.Ar progthen...
+will be run iff
+.Ar progif...
+exits nonzero.
+.El
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr execlineb 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/ifte.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

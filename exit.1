@@ -1,0 +1,56 @@
+.Dd February 14, 2021
+.Dt EXIT 1
+.Os
+.Sh NAME
+.Nm exit
+.Nd exit with a given exit code
+.Sh SYNOPSIS
+.Nm
+.Op Ar n
+.Sh DESCRIPTION
+.Nm
+exits with the exit code
+.Ar n ,
+or 0 if
+.Ar n
+is not given (in which case it's the same as
+.Ql true
+).
+If
+.Ar n
+is not a number,
+.Nm
+exits 100.
+.Pp
+.Ql exit
+is a standard shell builtin, with the same function.
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/exit.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

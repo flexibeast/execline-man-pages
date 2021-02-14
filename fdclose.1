@@ -1,0 +1,55 @@
+.Dd February 14, 2021
+.Dt FDCLOSE 1
+.Os
+.Sh NAME
+.Nm fdclose
+.Nd
+close a given file descriptor, then execute a program
+.Sh SYNOPSIS
+.Nm
+.Ar fd
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+closes the file descriptor number
+.Ar fd ,
+then
+.Xr exec 3 Ns
+s into
+.Ar prog
+with its arguments.
+.Pp
+.Ql fdclose Ar n Ar prog...
+is roughly equivalent to
+.Ql sh -c 'exec Ar prog... Ar n Ns <&-'
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/fdclose.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

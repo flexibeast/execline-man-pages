@@ -1,0 +1,55 @@
+.Dd February 14, 2021
+.Dt FDSWAP 1
+.Os
+.Sh NAME
+.Nm fdswap
+.Nd swap two file descriptors, then execute a program
+.Sh SYNOPSIS
+.Nm
+.Ar fd1
+.Ar fd2
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+swaps file descriptors numbered
+.Ar fd1
+and
+.Ar fd2 , then
+.Xr exec 3 Ns
+s into
+.Ar prog
+with its arguments.
+.Pp
+.Nm
+has no portable shell equivalent.
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/fdswap.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

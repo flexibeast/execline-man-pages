@@ -1,0 +1,113 @@
+.Dd February 10, 2021
+.Dt EXECLINE-EXITCODES 7
+.Os
+.Sh NAME
+.Nm execline-exitcodes
+.Nd how to propagate exit codes up a process dynasty
+.Sh DESCRIPTION
+Say we have a parent process
+.Ql P ,
+child of a grandparent process
+.Ql G ,
+spawning a child process
+.Ql C
+and waiting for it.
+Either C dies normally with an exit code from 0 to 255, or it is
+killed by a signal.
+How can we make sure that P reports to G what happened to C, with as
+much precision as possible?
+.Pp
+The problem is, there's more information in a wstat (the structure
+filled in by
+.Xr waitpid 2 )
+than a process can report by simply exiting.
+P could exit with the same exit code as C, but then what should it do
+if C has been killed by a signal?
+.Pp
+An idea is to have P kill itself with the same signal that killed C.
+But that's actually not right, because P itself could be killed by a
+signal from another source, and G needs that information.
+.Dq P has been killed by a signal
+and
+.Dq C has been killed by a signal
+are two different pieces of information, so they should not be
+reported in the same way.
+.Pp
+So, any way you look at it, there is always more information than we
+can report.
+.Pp
+Shells have their own convention[1] for reporting crashes, but since
+any exit code greater than 127 is reported as is, the information
+given by the shell is unreliable:
+.Dq child exited 129
+and
+.Dq child was killed by SIGHUP
+are indistinguishable.
+When shells get nested, all bets are off - the information conveyed by
+exit codes becomes devoid of meaning pretty fast.
+We need something better.
+.Ss execline's solution
+execline commands such as
+.Xr forx 1 ,
+that can report a child's exit code, proceed that way when they're in
+the position of P:
+.Bl -bullet -width x
+.It
+If C was killed by a signal: P exits 128 plus the signal number.
+.It
+If C exited 128 or more: P exits 128.
+.It
+Else, P exits with the same code as C.
+.El
+.Pp
+Rationale:
+.Bl -bullet -width x
+.It
+128+ exit codes are extremely rare and should report really
+problematic conditions; commands usually exit 127 or less.
+If C exits 128+, it's more important to convey the information
+.Do
+something really bad happened, but the C process itself was not
+killed by a signal
+.Dc
+than the exact nature of the event.
+.It
+Commands following that convention can be nested.
+If P exits 129+, G knows that C was killed by a signal.
+If G also needs to report that to its parent, it will exit 128: G's
+parent will not know the signal number, but it will know that P
+reported 128 or more, so either C or a scion of C had problems.
+.It
+Exact information is reported in the common case.
+.El
+.Ss Summary of common exit codes for execline programs
+.Bl -tag -width x
+.It 0
+Success.
+This code is rarely encountered, because most execline programs
+chainload into something else when they succeed, instead of exiting 0.
+.It 100
+Wrong usage.
+.It 111
+System call failed.
+.It 126
+Unable to chainload into another program
+.Po
+any other error than
+.Dv ENOENT
+.Pc .
+.It 127
+Unable to chainload into another program (executable not found).
+.El
+.Sh SEE ALSO
+.Xr forx 1 ,
+.Xr waitpid 2
+.Pp
+[1]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_08_02
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/exitcodes.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

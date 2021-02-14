@@ -1,0 +1,178 @@
+.Dd February 14, 2021
+.Dt ENVFILE 1
+.Os
+.Sh NAME
+.Nm envfile
+.Nd read a file containing variable assignments, add the variables to the environment, then execute a program
+.Sh SYNOPSIS
+.Nm
+.Op Fl i | Fl I
+.Ar file
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar file
+and adds the key-value pairs defined in
+.Ar file
+to the environment.
+Then it execs into
+.Ar prog... ,
+i.e. the rest of its command line, with the modified environment.
+.Ss File syntax
+.Ar file
+is a text file containing lines of the form
+.Ql key = value .
+Whitespace is permitted before and after
+.Ar key ,
+and before or after
+.Ar value .
+.Pp
+Empty lines, or lines containing only whitespace, are ignored.
+Lines beginning with
+.Ql #
+(possibly after some whitespace) are ignored (and typically used for
+comments).
+Leading and trailing whitespace is stripped from values; but a value
+can be double-quoted, which allows for inclusion of leading and
+trailing whitespace.
+.Pp
+A non-commented line that ends with a backslash
+.Po
+.Dq \e
+.Pc
+is concatenated with the following one, and the newline character is
+ignored.
+If a backslashed newline happens before the start of a value, then the
+whitespace at the beginning of the new line will be part of the value
+(i.e. leading whitespace on a new line is not stripped).
+.Pp
+C escapes, including hexadecimal and octal sequences, are supported in
+quoted values.
+Unicode codepoint sequences are not supported.
+It is possible to include a newline in a quoted value by using
+.Ql \en ;
+but including newlines in environment variables is not recommended.
+.Pp
+If
+.Ar value
+is empty,
+.Ar key
+is
+.Sy still
+added to the environment, with an empty value.
+If you do not want
+.Ar key
+to be added to the environment at all, comment out the line.
+.Nm
+does not offer a way to
+.Em remove
+variables from the environment.
+.Pp
+The
+.Nm
+format is largely compatible with systemd's EnvironmentFile[1] format,
+which allows for the reuse of such files outside of systemd.
+.Pp
+If
+.Ar file
+is
+.Ql -
+then
+.Nm
+reads and parses its standard input instead.
+To read a file literally named
+.Ql - ,
+you can use
+.Ql ./-
+for instance.
+.Pp
+The variables that can be defined with
+.Nm
+are purposefully restricted.
+If you need more expressive power for your variable names, or for your
+values, you should use an envdir instead: see
+.Xr s6-envdir 1 .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl i
+Strict.
+If
+.Ar file
+does not exist, exit 111 with an error message.
+This is the default.
+.It Fl I
+Loose.
+If
+.Ar file
+does not exist,
+.Xr exec 3
+into
+.Ar prog
+without modifying the environment.
+.El
+.Sh EXIT STATUS
+.Bl -tag -width x
+.It 1
+Syntax error in
+.Ar file .
+.It 100
+Wrong usage.
+.It 111
+System call failed.
+.It 126
+.Xr execve 2
+on
+.Ar prog
+failed (unknown reason).
+.It 127
+.Xr execve 2
+on
+.Ar prog
+failed
+.Po
+.Ar prog
+could not be found.
+.Pc
+.El
+.Pp
+0 is not listed because on success,
+.Nm
+does not exit: it execs into
+.Ar prog .
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr s6-envdir 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr execve 2 ,
+.Xr exec 3
+.Pp
+[1]
+.Lk https://www.freedesktop.org/software/systemd/man/systemd.exec.html#EnvironmentFile=
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/envfile.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

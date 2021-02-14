@@ -1,0 +1,112 @@
+.Dd February 14, 2021
+.Dt IF 1
+.Os
+.Sh NAME
+.Nm if
+.Nd perform conditional execution
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl X
+.Op Fl n
+.Op Fl t | Fl x Ar exitcode
+{
+.Ar prog1...
+}
+.Ar prog2...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar prog1...
+in a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+It forks and executes it, then waits for it to complete.
+.Pp
+If
+.Ar prog1
+crashes,
+.Nm
+prints an error message then exits 128 plus the number of the signal that killed
+.Ar prog1 .
+.Pp
+If
+.Ar prog1
+exits a non-zero status,
+.Nm
+exits 1.
+.Pp
+Else
+.Nm
+.Xr exec 3 Ns
+s into
+.Ar prog2 .
+.Pp
+.Nm
+will exit if
+.Ar prog1...
+exits false.
+To use it in an execline script that must run
+.Ar prog3...
+no matter the result of the test, use a
+.Xr foreground 1
+wrapper:
+.Bd -literal -offset indent
+foreground { if { prog1... } prog2... } prog3...
+.Ed
+.Pp
+(in
+.Xr execlineb 1
+syntax).
+.Pp
+.Ql if Ar prog1... No \(dq\(dq Ar prog2...
+is equivalent to
+.Ql sh -c ' Ns Ar prog1... No && exec Ar prog2...' .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl X
+Treat a crash of
+.Ar prog1
+as a non-zero
+.Po
+.Dq false
+.Pc
+exit.
+.It Fl n
+Negate the test (exit on true,
+.Xr exec 3
+into
+.Ar prog2
+on false).
+.It Fl x Ar exitcode
+Exit
+.Ar exitcode
+instead of 1 if the test fails.
+.It Fl t
+Exit 0 instead of 1 if the test fails.
+This is equivalent to
+.Ql -x 0 .
+.El
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr execlineb 1 ,
+.Xr foreground 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/if.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

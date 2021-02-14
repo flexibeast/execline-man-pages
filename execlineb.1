@@ -1,0 +1,441 @@
+.Dd February 14, 2021
+.Dt EXECLINEB 1
+.Os
+.Sh NAME
+.Nm execlineb
+.Nd read and execute a script
+.Sh SYNOPSIS
+.Nm
+.Op Fl q | Fl w | Fl W
+.Op Fl p | Fl P | Fl S Ar nmin | Fl s Ar nmin
+.Fl c Ar script
+.Op Ar args...
+.Pp
+or
+.Pp
+.Nm
+.Op Fl q | Fl w | Fl W
+.Op Fl p | Fl P | Fl S Ar nmin | Fl s Ar nmin
+.Ar scriptfile
+.Op Ar args...
+.Pp
+or in an executable file:
+.Bd -literal -offset indent
+#!/command/execlineb [ -qwWpPS<em>nmin</em> ]
+script
+.Ed
+.Sh DESCRIPTION
+.Nm
+is a command launcher: it reads a file, turns that file into a command line,
+then executes into that command line.
+.Ss Parsing phase
+.Nm
+reads and parses the script it is given.
+It exits 100 on a syntax error and 111 on a temporary error.
+It makes an
+.Em argv ,
+i.e. a system command line, with the parsed script.
+If the
+.Ar argv
+is empty,
+.Nm exits 0. </li>
+.Ss Environment management phase
+.Bl -tag -width x
+.It Pushing the current stack frame
+If none of the
+.Fl p ,
+.Fl P ,
+.Fl S
+or
+.Fl s
+options are set:
+.Nm
+pushes
+.Po
+\&.cf
+.Xr execline-pushenv 7
+.Pc
+the current positional parameters, i.e. environment variables that
+start with
+.Ql # ,
+.Ql 0 ,
+.Ql 1 ,
+\&...
+.Ql 9 .
+To get the previous values back, use
+.Ql emptyenv -P .
+.It Setting the new stack frame
+If none of the
+.Fl P ,
+.Fl S
+or
+.Fl s
+options are set:
+.Bl -bullet -width x
+.It
+.Nm execlineb
+sets the
+.Ev \&#
+environment variable to the number
+.Ar n
+of
+.Ar args
+it is given.
+.It
+It sets the
+.Ev 0
+environment variable to the name of the script - or to the
+.Nm
+invocation name if the
+.Fl c
+option is used.
+.It
+It sets the
+.Ev 1 ,
+.Ev 2 ,
+\&...
+.Ar n
+environment variables to the different
+.Ar args .
+.El
+.El
+.Ss Execution phase
+.Nm
+executes into the
+.Ar argv
+it has built from the script.
+There is only one command line for the whole script: the
+.Nm
+binary is a
+.Em launcher ,
+whose sole purpose is to execute into that command line.
+It does not stay in memory like a traditional
+.Em interpreter
+would.
+.Ss Syntax of scripts
+An
+.Nm
+script is a string that must not contain the null character.
+.Nm
+parses it and divides it into
+.Em words .
+.Pp
+The parser recognizes the following components:
+.Bl -bullet -width x
+.It
+.Em whitespace
+is defined as spaces, tabs, newlines and carriage returns.
+Words are always separated by whitespace.
+.It
+A
+.Em quoted string
+begins with a doublequote
+.Po
+.Ql \(dq
+.Pc
+and ends with another doublequote.
+Quoted doublequotes must be prefixed by a backslash
+.Po
+.Ql \e
+.Pc .
+Quoted strings always evaluate to exactly one word.
+For instance,
+.Ql \(dq\(dq
+evaluates to the empty word.
+.It
+The
+.Ql \ea ,
+.Ql \eb ,
+.Ql \et ,
+.Ql \en ,
+.Ql \ev ,
+.Ql \ef , and
+.Ql \er
+sequences are recognized in quoted strings, and are converted to the
+ASCII numbers 7, 8, 9, 10, 11, 12 and 13 respectively.
+.It
+Inside a quoted string, backslashed newlines disappear completely.
+.It
+.Ql \e0x Ns Ar ab
+sequences are recognized in quoted strings and evaluate to ASCII
+hexadecimal number
+.Ar ab .
+.It
+.Ql \e0 Ns Ar abc
+sequences are recognized in quoted strings and evaluate to ASCII octal
+number
+.Ar abc .
+.It
+.Ql \e Ns Ar abc
+sequences are recognized in quoted strings and evaluate to ASCII
+decimal number
+.Ar abc .
+.Ar a
+must not be zero.
+.It
+A comment starts with a
+.Ql #
+and ends with the line.
+Comments
+are not recognized inside quoted strings.
+.It
+Anything else is an unquoted string, that can evaluate to zero or more
+words.
+.It
+Any character can be escaped in unquoted strings by prepending it with
+a backslash.
+It works the same way in quoted strings, except for the special
+sequences described above.
+.El
+.Pp
+You can see an example of distinct
+.Nm
+components in
+.Xr execline-components 7 .
+.Pp
+In addition to that simple lexing,
+.Nm
+performs the following higher-level parsing:
+.Bl -bullet -width x
+.It
+A word consisting of a single
+.Em opening brace
+.Po
+.Ql {
+.Pc
+increments an internal level counter,
+.Ar blevel ,
+and disappears from the
+.Ar argv .
+Quoted open braces do not have that behaviour.
+.It
+A word consisting of a single
+.Em closing brace
+.Po
+.Ql }
+.Pc
+decrements
+.Ar blevel ,
+and is replaced with the empty word.
+Quoted closing braces do not have that behaviour.
+.It
+If
+.Nm
+finds that braces are unmatched (i.e.\&
+.Ar blevel
+goes below 0 during the parsing, or is not 0 at the end of the
+script), it exits 100 with an error message.
+.It
+.Nm
+automatically quotes blocks
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+Which means that everytime it finds a word, it prepends it with
+.Ar blevel
+spaces.
+.El
+.Pp
+For proper execution, the sequence of words must follow
+.Xr execline-grammar 7 .
+.Ss Current limitations
+.Nm
+builds and executes a unique
+.Ar argv
+with the script: hence scripts are subject to OS-dependent limitations
+such as the kernel buffer size for
+.Ar argv
+and
+.Ar envp
+- at least 64 kB on most systems.
+This means that
+.Nm
+cannot execute arbitrarily large scripts.
+Be careful with deeply nested scripts too: without the
+.Fl p
+/
+.Fl P
+/
+.Fl S
+/
+.Fl s
+option, each
+.Nm
+invocation uses up some space in the environment.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl c Ar script
+Execute
+.Ar script ,
+do not look for a file.
+.El
+.Pp
+See below for the other options.
+.Ss Options for block syntax checking
+External execline commands that read blocks, like
+.Xr foreground 1 ,
+use the
+.Ev EXECLINE_STRICT
+environment variable: if it is set to 1, they will print a warning
+message on stderr if they find their blocks not to be properly quoted.
+If it is set to 2, they will also die.
+If it is set to 0, or unset, they won't complain at all.
+.Pp
+Normally the
+.Ev EXECLINE_STRICT
+environment variable is inherited from the caller.
+You can force it unset, set to 1, or set to 2 by giving respectively
+the
+.Fl q ,
+.Fl w
+or
+.Fl W
+option to
+.Nm .
+.Pp
+The
+.Ev EXECLINE_STRICT
+variable (as well as the
+.Fl q ,
+.Fl w
+and
+.Fl W
+options to
+.Nm
+) will also modify the behaviour of the
+.Fl S Ar nmin
+and
+.Fl s Ar nmin
+options when
+.Nm
+is called with less than
+.Ar nmin
+positional parameters:
+.Bl -bullet -width x
+.It
+If
+.Ev EXECLINE_STRICT
+is 0: the script will run silently, and missing positional parameters,
+up to
+.Ar nmin ,
+will be substituted with the empty word.
+.It
+If
+.Ev EXECLINE_STRICT
+is 1 or unset: same, but the script will print a warning message
+rather than run silently.
+.It
+If
+.Ev EXECLINE_STRICT
+is 2: the script will exit with an error message.
+.El
+.Ss Options for environment management
+Normally, execline scripts are
+.Em reentrant :
+environment variables potentially overwritten by
+.Nm ,
+such as
+.Ev \&#
+or
+.Ev 0 ,
+are pushed
+.Po
+cf.\&
+.Xr execline-pushenv 7
+.Pc .
+This is the standard, safe behaviour.
+Nevertheless, it is rather costly, and may be unneeded for small
+scripts: for those cases, execline comes with two options that bypass
+the environment management.
+Be warned that the purpose of these options is
+.Sy optimization ,
+and you should not use them if you're not familiar with the way
+.Nm
+uses the environment to store positional parameters.
+Alternatively, there's also an integrated substitution mechanism that
+doesn't make use of the environment at all.
+.Bl -bullet -width x
+.It
+The
+.Fl p
+option will bypass the push
+.Po
+cf.\&
+.Xr execline-pushenv 7
+.Pc
+phase: the current frame of positional parameters will be
+.Em overwritten .
+The script will
+.Em not
+be reentrant.
+.It
+The
+.Fl P
+option will bypass positional parameter handling
+.Em completely :
+the environment will not be pushed, and positional parameters will be
+ignored.
+.Bd -literal -offset indent
+execlineb -P -c \(dqscript\(dq
+.Ed
+.Pp
+is equivalent to, but more efficient than,
+.Bd -literal -offset indent
+execlineb -c \(dqemptyenv -P script\(dq
+.Ed
+.Pp
+You should use the
+.Fl P
+option only in standalone scripts that take no arguments, such as
+s6's[1] or runit's[2]
+.Em run scripts .
+.It
+The
+.Fl S Ar nmin
+option
+.Em will
+substitute the positional parameters - up to at least
+.Ar nmin
+- but
+.Em will not
+push nor set environment variables.
+.Bd -literal -offset indent
+execlineb -S3 -c \(dqscript\(dq
+.Ed
+.Pp
+is equivalent to, but more efficient than,
+.Bd -literal -offset indent
+execlineb -c \(dqelgetpositionals -P3 emptyenv -P script\(dq
+.Ed
+.Pp
+See
+.Xr execline-pushenv 7
+for details.
+.It
+The
+.Fl s Ar nmin
+option behaves just like the
+.Fl S
+option, except that it defines
+.Ql $@
+as the rest of the command line
+.Sy after
+.Ar nmin
+arguments have been removed.
+.El
+.Sh SEE ALSO
+.Xr foreground 1 ,
+.Xr execline-pushenv 7
+.Pp
+[1]
+.Lk https://skarnet.org/software/s6/
+.Pp
+[2]
+.Lk http://smarden.org/runit/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/execlineb.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

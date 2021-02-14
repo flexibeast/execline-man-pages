@@ -1,0 +1,91 @@
+.Dd February 14, 2021
+.Dt IFTHENELSE 1
+.Os
+.Sh NAME
+.Nm ifthenelse
+.Nd perform a conditional alternative
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl X
+.Op Fl s
+{
+.Ar progif...
+} {
+.Ar progthen...
+} {
+.Ar progelse...
+}
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar progif... ,
+.Ar progthen...
+and
+.Ar progelse...
+in 3 consecutive blocks
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc .
+.Pp
+.Nm
+runs
+.Ar progif...
+as a child process and waits for it to complete.
+.Pp
+If
+.Ar progif...
+crashes (i.e. is killed by a signal),
+.Nm
+prints an error message, then exits 128 plus the number of the signal
+that killed
+.Ar progif .
+.Pp
+If
+.Ar progif...
+exits zero,
+.Nm
+runs
+.Ar progthen...
+as a child process, else it runs
+.Ar progelse... .
+.Pp
+.Nm
+waits for its child to complete and puts the exit status in the
+.Ev \&?
+environment variable.
+It then
+.Xr exec 3 Ns
+s into
+.Ar prog... .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl X
+If
+.Ar progif
+crashes, do not exit; proceed as if it had returned false.
+.It Fl s
+Magic scoping hack.
+This option does powerful but ugly things, and is left undocumented on
+purpose.
+.El
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/ifthenelse.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

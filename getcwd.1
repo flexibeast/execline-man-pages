@@ -1,0 +1,88 @@
+.Dd February 14, 2021
+.Dt GETCWD 1
+.Os
+.Sh NAME
+.Nm getcwd
+.Nd store current working directory into a given environment variable, then executes a program
+.Sh SYNOPSIS
+.Nm
+.Op Fl E | Fl e
+.Ar var
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+stores a fully resolved absolute path (i.e. without any
+.Pa ..
+or symbolic link components) to its current working directory into the
+.Ar var
+variable, then
+.Xr exec 3 Ns
+s into
+.Ar prog
+with its arguments.
+.Pp
+.Ar var
+must be given without a dollar!
+.Pp
+.Ar var
+must not contain
+.Ql = .
+.Pp
+Unlike the
+.Xr pwd 1
+POSIX command,
+.Nm
+does not depend on the
+.Ev PWD
+environment variable and will exhibit a consistent behaviour no matter
+the environment.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl e
+No autoimport.
+This is the default.
+.It Fl E
+Autoimport.
+Instead of
+.Xr exec 3 Ns
+ing into
+.Ar prog... ,
+.Xr exec 3
+into
+.Ql importas -ui Ar var Ar var Ar prog... .
+This substitutes
+.Ar var
+into the command line instead of putting it into the environment.
+.El
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr pwd 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/getcwd.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

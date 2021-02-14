@@ -1,0 +1,75 @@
+.Dd February 14, 2021
+.Dt BACKGROUND 1
+.Os
+.Sh NAME
+.Nm background
+.Nd launch a command in the background, then go on with the execution flow
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl d
+{
+.Ar prog1...
+}
+.Ar prog2...
+.Sh DESCRIPTION
+.Nm
+reads a
+.Ar prog1...
+command in an
+.Xr execline-block 7
+and unquotes it.
+.Pp
+It spawns a child executing
+.Ar prog1... .
+.Pp
+It sets the
+.Ev \&!
+environment variable to the pid of the
+.Ar prog1...
+process.
+.Pp
+It then
+.Xr exec 3 Ns
+s into
+.Ar prog2... .
+.Pp
+The command:
+.Bd -literal -offset indent
+background prog1... \(dq\(dq prog2...
+.Ed
+.Pp
+is equivalent to:
+.Bd -literal -offset indent
+sh -c 'prog1... & ; exec prog2...'
+.Ed
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl d
+Doublefork.
+If the
+.Fl d
+option is set,
+.Ar prog1...
+will run as a grandchild of
+.Nm .
+.El
+.Sh SEE ALSO
+.Xr backtick 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr pipeline 1 ,
+.Xr runblock 1 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/background.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

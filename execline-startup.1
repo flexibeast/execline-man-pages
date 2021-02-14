@@ -1,0 +1,67 @@
+.Dd February 14, 2021
+.Dt EXECLINE-STARTUP 1
+.Os
+.Sh NAME
+.Nm execline-startup
+.Nd perform some system-specific login initialization, then execute
+.Pa ${HOME}/.execline-loginshell
+.Sh SYNOPSIS
+.Pa /etc/execline-startup
+.Sh DESCRIPTION
+.Nm
+sets the
+.Ev SHELL
+environment variable to
+.Pa /etc/execline-shell .
+It then performs some system-specific initialization, and
+transforms itself into
+.Ql ${HOME}/.execline-loginshell $@
+if available (and
+.Ql /etc/execline-shell
+otherwise).
+.Pp
+.Pa ${HOME}/.execline-loginshell
+must be readable and executable by the user.
+It must
+.Xr exec 3
+into
+.Ql $SHELL $@ .
+.Pp
+.Nm
+is an
+.Xr execlineb 1
+script; hence, it is readable and modifiable.
+It is meant to be modified by the system administrator to perform
+system-specific login-time initialization.
+.Pp
+As a modifiable configuration file, execline-startup is provided in
+execline's
+.Pa examples/etc/
+subdirectory, and should be copied by the administrator to
+.Pa /etc .
+.Pp
+.Nm
+is meant to be used as a login shell.
+System administrators should manually add
+.Ql /etc/execline-startup
+to the
+.Pa /etc/shells
+file.
+The
+.Pa /etc/execline-startup
+file itself plays the role of the
+.Pa /etc/profile
+file, and
+.Pa ${HOME}/.execline-loginshell
+plays the role of the
+.Pa ${HOME}/.profile
+file.
+.Sh SEE ALSO
+.Xr execlineb 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/execline-startup.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

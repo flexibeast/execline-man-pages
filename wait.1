@@ -1,0 +1,121 @@
+.Dd February 14, 2021
+.Dt WAIT 1
+.Os
+.Sh NAME
+.Nm wait
+.Nd wait for a set of children, then execute a program
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl I | Fl i
+.Op Fl r | Fl t Ar timeout
+{
+.Op Ar pids...
+}
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+reads a list of
+.Ar pids
+in a (possibly empty) block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc ,
+and unquotes it.
+.Pp
+.Nm
+waits for every child whose pid is listed in
+.Ar pids... .
+If
+.Ar pids...
+is an empty list, it waits for every child process it has.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into
+.Ar prog... .
+.Pp
+For POSIX compatibility[1],
+.Nm
+also works when it cannot find a block.
+In that case, all its command line is interpreted as
+.Ar pids...
+arguments and it does not execute into a program.
+Instead, it exits with a conforming exit code.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl r
+Equivalent to
+.Ql -t 0 .
+Do not pause: only reap processes that are already dead when
+.Nm
+is invoked.
+.It Fl t Ar timeout
+Wait for a maximum of
+.Ar timeout
+milliseconds.
+If there still are living processes among
+.Ar pids...
+(or among
+.Nm Ap
+s children if
+.Ar pids...
+is an empty list), after
+.Ar timeout
+milliseconds, they will not be reaped.
+.It Fl I
+Loose.
+If
+.Nm
+times out while waiting for children to die, it will still
+.Xr exec 3
+into
+.Ar prog... .
+This is the default.
+.It Fl i
+Strict.
+If
+.Nm
+times out, it will print an error message and exit 1.
+.El
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr execlineb 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7
+.Pp
+[1]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/utilities/wait.html
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/wait.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

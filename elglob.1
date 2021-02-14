@@ -1,0 +1,100 @@
+.Dd February 14, 2021
+.Dt ELGLOB 1
+.Os
+.Sh NAME
+.Nm elglob
+.Nd perform globbing on a pattern, then execute another program
+.Sh SYNOPSIS
+.Nm
+.Op Fl v
+.Op Fl w
+.Op Fl s
+.Op Fl m
+.Op Fl e
+.Op Fl 0
+.Ar variable
+.Ar pattern
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+performs globbing[1] on
+.Ar pattern .
+.Pp
+It then performs
+variable substitution
+.Po
+cf.
+.Xr execline-substitute 7
+.Pc
+on
+.Ar prog... ,
+using
+.Ar variable
+as key and the result of the globbing as value.
+The value is always split: it contains as many words as they are
+matches for the globbing pattern.
+.Pp
+.Nm
+then
+.Xr exec 3 Ns
+s into the modified
+.Ar prog... .
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl v
+Verbose.
+If there is a problem while globbing, print a warning message on
+stderr.
+.It Fl w
+Strict.
+If there is a problem while globbing, die immediately.
+This is harsh - you probably don't need that option.
+.It Fl s
+Sort the matches.
+By default, the results are left unsorted.
+.It Fl m
+Mark.
+Append a slash to each word that corresponds to a directory.
+.It Fl e
+No escape.
+Treat backslashes in
+.Ar pattern
+literally; do not allow quoting of metacharacters in
+.Ar pattern
+via backslashes.
+.Sy Warning :
+the
+.Xr execlineb 1
+launcher uses the backslash as their own escape character - if you
+want a backslash to be passed to
+.Nm ,
+do not forget to
+.Em double
+it.
+.It Fl 0
+Null globbing.
+By default, if
+.Ar pattern
+matches nothing, it will be substituted as is (verbatim in one
+word).
+With this option, if
+.Ar pattern
+matches nothing, it will be properly substituted as zero word.
+.El
+.Sh SEE ALSO
+.Xr define 1 ,
+.Xr elgetpositionals 1 ,
+.Xr execlineb 1 ,
+.Xr importas 1 ,
+.Xr multidefine 1 ,
+.Xr multisubstitute 1 ,
+.Xr execline-substitute 7
+.Pp
+[1]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/functions/glob.html
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/elglob.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

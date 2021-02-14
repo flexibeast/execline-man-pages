@@ -1,0 +1,51 @@
+.Dd February 14, 2021
+.Dt EXECLINE-SHELL 1
+.Os
+.Sh NAME
+.Nm execline-shell
+.Nd execute
+.Pa $HOME/.execline-shell
+if available (or
+.Pa /bin/sh
+otherwise) with the arguments given
+.Sh SYNOPSIS
+.Pa /etc/execline-shell
+.Sh DESCRIPTION
+.Nm
+transforms itself into
+.Ql ${HOME}/.execline-shell $@ .
+.Pp
+.Pa ${HOME}/.execline-shell
+must be readable and executable by the user.
+It must
+.Xr exec 3
+into an interactive shell with
+.Ql $@
+as its argument.
+.Pp
+.Nm
+is meant to be used as the
+.Ev SHELL
+environment variable value.
+It allows one to specify their favourite shell and shell configuration in any language, since the
+.Pa ${HOME}/.execline-shell
+file can be any executable program.
+.Pa ${HOME}/.execline-shell
+can be seen as a portable
+.Ql . Ns Ar whatever Ns rc
+file.
+.Pp
+As an administrator-modifiable configuration file,
+.Pa execline-shell
+provided in execline's
+.Pa examples/etc/
+subdirectory, and should be copied by the administrator to
+.Pa /etc .
+.Sh SEE ALSO
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/execline-shell.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

@@ -1,0 +1,429 @@
+.Dd February 14, 2021
+.Dt EXECLINE-SUBSTITUTE 7
+.Os
+.Sh NAME
+.Nm execline-substitute
+.Nd overview of execline variable substitution
+.Sh DESCRIPTION
+In a shell, when you write
+.Bd -literal -offset indent
+$ A='foobar' ; echo $A
+.Ed
+.Pp
+the
+.Xr echo 1
+command is given the argument
+.Ql foobar .
+The
+.Ql foobar
+.Em value
+has been substituted for the
+.Ql A
+.Em variable .
+.Pp
+Although execline maintains no state, and thus has no real variables,
+it provides such a
+.Em substitution
+facility via
+.Em substitution commands ,
+namely:
+.Bl -bullet -width x
+.It
+.Xr define 1
+.It
+.Xr importas 1
+.It
+.Xr elglob 1
+.It
+.Xr elgetpositionals 1
+.It
+.Xr multidefine 1
+.It
+.Xr multisubstitute 1
+.El
+.Pp
+A substitution command takes a
+.Em key ,
+i.e. a string (which can contain any character but
+.Ql $ ,
+.Ql {
+and
+.Ql } ,
+although it is recommended to use only alphanumerical characters), and
+a way to compute a
+.Em value .
+.Ss Basics
+If the substitution key is
+.Ar foo ,
+then the substitution command will look for every occurrence of
+.Ql ${ Ns Ar foo Ns }
+or
+.Ql $ Ns Ar foo
+in the rest of its argv.
+Note that
+.Ql ${ Ns Ar foo Ns }bar
+matches, but
+.Ql $ Ns Ar foo Ns bar
+.Sy does not .
+To be safe, always use the syntax with braces, unless
+.Ql $ Ns Ar foo
+is a word on its own.
+.Pp
+Every match is then replaced with the
+.Em value .
+.Pp
+The simplest example is the following:
+.Bd -literal -offset literal
+#!/command/execlineb
+define FOO blah
+echo $FOO
+.Ed
+.Pp
+which will replace the
+.Ql FOO
+key with the
+.Ql blah
+value, then execute the
+.Xr echo 1
+command.
+So that script will print
+.Ql blah
+on stdout.
+.Ss Quoting
+execline allows you to write literal
+.Ql ${ Ns Ar foo Ns }
+constructs even when the
+.Ar foo
+variable is being substituted, thanks to a quoting mechanism.
+Brace (pun intended) yourself: the following is the most complex part
+of the whole language.
+.Pp
+.Sy Rationale
+.Pp
+If we want to be able to have a literal <tt>${<em>foo</em>}</tt>, then:
+.Bl -bullet -width x
+.It
+The
+.Ql ${ Ns Ar foo Ns }
+sequence will mean one of two things: be substituted, or
+.Em don't
+be substituted.
+.It
+The default (unquoted) action should be: substitute.
+.It
+A sequence that means
+.Dq do not substitute
+should be able to appear literally.
+The quote character should also be able to appear literally before a
+sequence that means
+.Dq substitute .
+(Tricky, eh?)
+.It
+There should be as few quote characters as possible, to avoid
+shell-like quoting nightmares.
+.El
+.Pp
+.Sy Syntax
+.Pp
+Rule:
+.Bl -bullet -width x
+.It
+The backslash
+.Po
+.Ql \e
+.Pc
+is a quote character for substitution commands.
+.It
+The following rule applies only if the
+.Ar foo
+key is explicitly used in a substitution command.
+If no command tries to substitute anything for
+.Ar foo ,
+sequences like
+.Ql ${ Ns Ar foo Ns }
+and preceding backslashes are left untouched.
+.It
+(Substitute.)
+If
+.Ql ${ Ns Ar foo Ns }
+is preceded by
+.Ar 2*n
+backslashes
+(an
+.Sy even
+number), the whole sequence will be replaced with
+.Ar n
+backslashes, followed by the substituted value.
+.It
+(Do not substitute.)
+If
+.Ql ${ Ns Ar foo Ns }
+is preceded by
+.Ar 2*n+1
+backslashes
+(an
+.Sy odd
+number), the whole sequence will be replaced with
+.Ar n
+backslashes, followed by the literal
+.Ql ${ Ns Ar foo Ns } .
+.El
+.Pp
+And now, the catch: the
+.Xr execlineb 1
+launcher, as well as the shell, interprets backslashes as escape
+characters.
+To make a word that contains a backlash, you need to write
+.Em two
+backslashes in your execline script or shell command line.
+That means that the whole number of backslashes you must write before
+your
+.Ql ${ Ns Ar foo Ns }
+sequence must be doubled for the substitution command to read the
+proper number of backslashes and perform its work correctly.
+.Pp
+Once you keep that in mind, the quoting rule is logical.
+.Pp
+.Sy Example
+.Pp
+The quoting rule is best illustrated with the following example, where
+the
+.Ql A
+key is substituted, and the
+.Ql $B
+sequences mean nothing special.
+.Bd -literal -offset indent
+#!/command/execlineb
+define A val
+foreground { echo $A \e\e$A \e\e\e\e$A \e\e\e\e\e\e$A \e\e\e\e\e\e\e\e$A \e\e\e\e\e\e\e\e\e\e$A }
+             echo $B \e\e$B \e\e\e\e$B \e\e\e\e\e\e$B \e\e\e\e\e\e\e\e$B \e\e\e\e\e\e\e\e\e\e$B
+.Ed
+.Pp
+prints
+.Bd -literal -offset indent
+val $A \eval \e$A \e\eval \e\e$A
+$B \e$B \e\e$B \e\e\e$B \e\e\e\e$B \e\e\e\e\e$B
+.Ed
+.Pp
+Phew.
+.Ss Value transformations
+A value can go through several transformations before it is
+substituted.
+It can be crunched, chomped, and/or split
+.Po
+cf.\&
+.Xr execline-transform 7
+.Pc
+.Ss Substitution of split values
+A
+.Ql split
+value for
+.Ql FOO
+means that a word containing
+.Ql ${FOO}
+will be replaced by zero, one, or (usually) more than one word.
+The value actually means a
+.Em list
+of values.
+.Pp
+The rule is: substituting a list of values
+.Po
+.Ar v1 ,
+.Ar v2 ,
+.Ar ...
+.Pc
+for a key
+.Ar A
+is the same as listing the substitutions of every value
+.Ar v Ns Ar i
+for
+.Ar A .
+.Pp
+For instance,
+.Bd -literal -offset indent
+#!/command/execlineb
+define -s FOO "v1 v2 v3" echo prefix-${FOO}-postfix
+.Ed
+.Pp
+will substitute three values for
+.Ql $FOO :
+.Ql v1 ,
+.Ql v2
+and
+.Ql v3 .
+So the
+.Xr echo 1
+command will be called with three arguments:
+.Ql prefix-v1-postfix ,
+.Ql prefix-v2-postfix ,
+and
+.Ql prefix-v3-postfix .
+.Pp
+(Implementation note: the fact that word prefixes are kept is what
+makes execline's subtitutions secure.
+Blocks
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc
+are implemented via prefix space characters; a substitution occurring
+inside a block will always produce words beginning with the right
+amount of spaces, thus substituted values cannot prematurely terminate
+a block.)
+.Pp
+.Sy Recursive substitutions
+.Pp
+A direct consequence of that rule is that substitutions will be
+performed recursively if more than one key appears in one word and the
+values for those keys are split.
+Parallel substitutions are performed from left to right.
+For instance, in
+.Bd -literal -offset indent
+#!/command/execlineb
+define -s B "1 2 3" echo ${B}x${B}
+.Ed
+.Pp
+the
+.Ql ${B}x${B}
+word will be replaced with
+.Em nine
+words:
+.Ql 1x1 ,
+.Ql 1x2 ,
+.Ql 1x3 ,
+.Ql 2x1 ,
+.Ql 2x2 ,
+.Ql 2x3 ,
+.Ql 3x1 ,
+.Ql 3x2 ,
+and
+.Ql 3x3 ,
+in that order.
+.Pp
+Here is an example with two distinct substitutions in parallel:
+.Bd -literal -offset indent
+#!/command/execlineb
+multisubstitute
+{
+  define -s A "a b c d"
+  define -s B "1 2 3"
+}
+echo ${A}x${B}
+.Ed
+.Pp
+The
+.Ql ${A}x${B}
+word will be replaced with
+.Em twelve
+words:
+.Ql ax1 ,
+.Ql ax2 ,
+.Ql ax3 ,
+.Ql bx1 ,
+.Ql bx2 ,
+.Ql bx3 ,
+.Ql cx1 ,
+.Ql cx2 ,
+.Ql cx3 ,
+.Ql dx1 ,
+.Ql dx2 ,
+and
+.Ql dx3 ,
+in that order.
+You can check that the order of the
+.Ql define
+directives in
+.Xr multisubstitute 1
+does not matter.
+.Pp
+If the left-to-right order does not suit you, then you should perform
+.Em serial
+substitutions.
+For instance, the previous script can be replaced with
+.Bd -literal -offset indent
+#!/command/execlineb
+define -s B "1 2 3"
+define -s A "a b c d"
+echo ${A}x${B}
+.Ed
+.Pp
+and will substitute
+.Ql ${B}
+first, then
+.Ql ${A} .
+So it will print
+.Bd -literal -offset indent
+ax1 bx1 cx1 dx1 ax2 bx2 cx2 dx2 ax3 bx3 cx3 dx3
+.Ed
+.Pp
+in that order.
+.Ss Not for the faint of heart
+If you think you have mastered the art of execline substitution, then
+you can try to do better than these people:
+.Bl -bullet -width x
+.It
+Jo\(:el Riou[1] wrote the first execlineb quine[2], using
+only
+.Xr echo 1
+as non-execline external command.
+.It
+Shortly after, Paul Jarc[3] wrote a much shorter quine[4], using
+.Xr echo 1
+and
+.Xr env 1
+as non-execline external commands.
+He also wrote a revised version[5], using only
+.Xr echo 1 ,
+and a shorter definitive version[6].
+The last one is probably very close to the shortest possible execline
+quine.
+.It
+David Madore[7] wrote another quine[8], using
+.Xr printf 1 .
+His quine is longer than the other ones, but is well-commented and can
+be used as a tutorial on how to write quines. :)
+.El
+.Sh SEE ALSO
+.Xr define 1 ,
+.Xr echo 1 ,
+.Xr elgetpositionals 1 ,
+.Xr elglob 1 ,
+.Xr env 1 ,
+.Xr execlineb 1 ,
+.Xr importas 1 ,
+.Xr multidefine 1 ,
+.Xr multisubstitute 1 ,
+.Xr multisubstitute 1 ,
+.Xr printf 1 ,
+.Xr execline-block 7 ,
+.Xr execline-transform 7
+.Pp
+[1]
+.Lk http://jriou.org/
+.Pp
+[2]
+.Lk https://skarnet.org/software/execline/quine-jriou.txt
+.Pp
+[3]
+.Lk https://code.dogmap.org/
+.Pp
+[4]
+.Lk https://skarnet.org/software/execline/quine-prj.txt
+.Pp
+[5]
+.Lk https://skarnet.org/software/execline/quine-prj-2.txt
+.Pp
+[6]
+.Lk https://skarnet.org/software/execline/quine-prj-3.txt
+.Pp
+[7]
+.Lk http://www.madore.org/~david/
+.Pp
+[8]
+.Lk https://skarnet.org/software/execline/quine-dam.txt
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/el_substitute.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

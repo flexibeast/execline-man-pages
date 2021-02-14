@@ -1,0 +1,116 @@
+.Dd February 14, 2021
+.Dt DOLLARAT 1
+.Os
+.Sh NAME
+.Nm dollarat
+.Nd print the positional parameters of an execline script
+.Sh SYNOPSIS
+.Nm
+.Op Fl n
+.Op Fl 0 | Fl d Ar delimchar
+.Sh DESCRIPTION
+.Nm
+reads the number
+.Ar n
+of
+.Dq positional parameters
+in the
+.Ev \&#
+environment variable.
+If that variable is not set or does not contain a valid
+.Ar n ,
+.Nm dollarat
+exits 100.
+.Pp
+.Nm
+prints the value of the
+.Ev 1
+environment variable, then
+.Ar delimchar ,
+then the value of the
+.Ev 2
+environment variable... and so on until
+.Ar n .
+If one of these variables is not set,
+.Nm
+exits 100.
+.Pp
+If everything runs OK,
+.Nm
+exits 0.
+This makes it one of the rare
+.Dq exiting
+execline commands.
+.Pp
+You can use
+.Ql dollarat -d \(dq\(dq
+along with the
+.Xr forbacktickx 1
+command to reliably loop over the positional parameters:
+.Bd -literal -offset indent
+#!/command/execlineb
+forbacktickx -d "" ARG { dollarat -d "" }
+dosomething $ARG
+.Ed
+.Pp
+will call
+.Ql dosomething
+in turn on each argument to the script.
+That will work even if those arguments contain spaces, newlines, or
+other fancy characters.
+.Pp
+Alternatively, instead of encoding data into a netstring, you can use
+a null-separated list, which will work the same way:
+.Bd -literal -offset indent
+#!/command/execlineb
+forbacktickx -0 ARG { dollarat -0 }
+dosomething $ARG
+.Ed
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl n
+.Em chomp .
+Do not print the last
+.Ar delimchar .
+.It Fl d Ar delimchar
+Use the character
+.Ar delimchar
+as separator between the arguments.
+Default:
+.Ql \en .
+If
+.Ar delimchar
+has more than one character, only the first one is used.
+If
+.Ar delimchar
+is the empty string, then
+.Nm
+will output the positional parameters as a sequence of netstrings
+.Po
+cf.
+.Xr execline-transform 7
+.Pc
+and the
+.Fl n
+option will be ignored.
+.It Fl 0
+Use the null character as separator.
+If this option and the
+.Fl d
+option are given concurrently, the rightmost one wins.
+Warning:
+.Fl 0
+should only be used to feed data to programs that know how to handle
+null-separated lists.
+.El
+.Sh SEE ALSO
+.Xr elgetopt 1 ,
+.Xr forbacktickx 1 ,
+.Xr shift 1 ,
+.Xr execline-transform 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/dollarat.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

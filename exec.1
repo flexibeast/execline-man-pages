@@ -1,0 +1,87 @@
+.Dd February 14, 2021
+.Dt EXEC 1
+.Os
+.Sh NAME
+.Nm exec
+.Nd execute the command line it is given
+.Sh SYNOPSIS
+.Nm
+.Op Fl c
+.Op Fl l
+.Op Fl a Ar argv0
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+.Xr exec 3 Ns
+s into
+.Ar prog... .
+It does nothing else.
+.Pp
+Without options,
+.Nm
+can be seen as the execline NOP.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl c
+Empty the environment.
+.Ar prog
+is executed with no environment variables.
+.Sy Warning :
+.Ar prog
+will run with an empty
+.Ev PATH ,
+so make sure it does not rely on it.
+.It Fl l
+Login.
+Prepends
+.Ar prog Ap Ns
+s argv[0] with a dash.
+.It Fl a Ar argv0
+argv0.
+Replace
+.Ar prog Ap Ns
+s argv[0] with
+.Ar argv0 .
+This is done
+.Em before
+adding a dash, if the
+.Fl l
+option is also present.
+.El
+.Pp
+The
+.Nm exec
+command, along with its options, is designed to emulate the standard
+.Ql exec
+shell builtin, which replaces the shell with the command it is given.
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr execline-cd 1 ,
+.Xr execline-umask 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/exec.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

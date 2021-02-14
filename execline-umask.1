@@ -1,0 +1,65 @@
+.Dd February 14, 2021
+.Dt EXECLINE-UMASK 1
+.Os
+.Sh NAME
+.Nm execline-umask
+.Nd set the umask (file creation mask), then execute a program
+.Sh SYNOPSIS
+.Nm
+.Ar mask
+.Ar prog...
+.Sh DESCRIPTION
+.Nm
+sets the current umask to
+.Ar mask ,
+then
+.Xr exec 3 Ns
+s into
+.Ar prog... .
+By default, at execline installation time, a
+.Pa umask
+symbolic link is created, pointing to
+.Pa execline-umask .
+.Pp
+When execline has been configured with the
+.Ql --enable-pedantic-posix
+option, the
+.Pa umask
+symbolic link points to the
+.Xr posix-umask 1
+binary instead.
+.Pp
+Existing execline scripts calling
+.Ql umask
+will keep working no matter the chosen configuration.
+.Sh SEE ALSO
+.Xr emptyenv 1 ,
+.Xr envfile 1 ,
+.Xr exec 1 ,
+.Xr execline-cd 1 ,
+.Xr exit 1 ,
+.Xr export 1 ,
+.Xr fdblock 1 ,
+.Xr fdclose 1 ,
+.Xr fdmove 1 ,
+.Xr fdreserve 1 ,
+.Xr fdswap 1 ,
+.Xr getcwd 1 ,
+.Xr getpid 1 ,
+.Xr heredoc 1 ,
+.Xr piperw 1 ,
+.Xr posix-cd 1 ,
+.Xr posix-umask 1 ,
+.Xr redirfd 1 ,
+.Xr trap 1 ,
+.Xr tryexec 1 ,
+.Xr unexport 1 ,
+.Xr wait 1 ,
+.Xr withstdinas 1 ,
+.Xr exec 3
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/execline-umask.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

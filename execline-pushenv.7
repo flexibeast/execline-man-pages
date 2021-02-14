@@ -1,0 +1,205 @@
+.Dd February 8, 2021
+.Dt EXECLINE-PUSHENV 7
+.Os
+.Sh NAME
+.Nm execline-pushenv
+.Nd pushing and popping the environment
+.Sh DESCRIPTION
+The
+.Xr execlineb 1
+launcher can store
+.Em positional parameters ,
+i.e. arguments given to your script, into the environment.
+The
+.Ev \&#
+variable contains the number of arguments; the
+.Ev 0
+variable contains the name of your execline script; the
+.Ev 1
+variable contains the first argument; and so on.
+.Pp
+Up to execline-1.04, this could create problems with nested scripts:
+the inner script would overwrite the outer script's parameters, and
+there was no way to get them back.
+In particular, writing execline commands in the execline language via
+the
+.Xr runblock 1
+command was impossible.
+.Ss Push
+To solve that issue, execline now implements a kind of
+.Em environment stack .
+When
+.Xr execlineb 1
+reads the arguments, it does not overwrite the positional parameters,
+but
+.Em pushes
+them on a stack:
+.Bl -bullet -width x
+.It
+.Ev \&#
+will be set to the current number of arguments
+.It
+but if a variable named
+.Ev \&#
+existed before, it is renamed
+.Ev \&#:1
+.It
+and if a variable named
+.Ev \&#:1
+also existed, it is renamed
+.Ev \&#:2
+.It
+\&... and so on until
+.Ev \&# : Ns Ar n+1
+doesn't exist.
+.El
+.Pp
+Same goes for the other
+.Em positional parameters .
+.Pp
+The script then runs; and commands such as
+.Xr elgetpositionals 1
+use the current frame of positional parameters, without paying
+attention to the deeper levels.
+.Ss Pop
+When you are done with the arguments, it is advisable to
+.Em drop
+the current frame, and
+.Em pop
+the environment stack to get it back to its previous state:
+.Bl -bullet -width x
+.It
+.Ev \&#
+will be unset
+.It
+but if
+.Ev \&#:1
+exists, it will be renamed
+.Ev \&#
+.It
+and if
+.Ev \&#:2
+exists, it will be renamed
+.Ev \&#:1
+\&... and so on until
+.Ev \&# : Ns Ar n+1
+doesn't exist.
+.El
+.Pp
+Again, same goes for the other
+.Em positional parameters .
+The
+.Xr runblock 1
+command will perform that
+.Em pop
+operation automatically; the standard
+.Dq manual
+way to perform it is to use the
+.Ql emptyenv -P
+command.
+.Ss Substituting positional parameters without touching the environment
+Most of the time, you just need to substitute the positional
+parameters in your execline script, and don't need to go through the
+whole
+.Xr elgetpositionals 1
+and
+.Xr emptyenv 1
+chain.
+execline comes with an integrated substitution mechanism, that does
+not touch the environment at all: the
+.Ql -S Ar n
+option.
+.Pp
+Scripts beginning with:
+.Bd -literal -offset indent
+#!/command/execlineb -Sn
+foobar...
+.Ed
+.Pp
+are equivalent to:
+.Bd -literal -offset indent
+#!/command/execlineb
+elgetpositionals -Pn
+emptyenv -P
+foobar...
+.Ed
+.Pp
+So, to summarize, from most efficient (but less flexible) to least
+efficient (but more flexible):
+.Bl -bullet -width x
+.It
+Use
+.Ql execlineb -P
+if you don't need positional parameters at all; for instance, in s6[1]
+or runit[2]
+.Em run scripts .
+.It
+Use
+.Ql execlineb -S Ar n
+if you need only simple positional parameter substitution in your script - no
+.Xr shift 1
+or
+.Xr elgetopt 1 ,
+no
+.Ql importas 1 1 .
+.It
+Use
+.Ql execlineb -p ,
+then
+.Xr elgetpositionals 1
+if you don't mind overwriting the current stack of positional parameters.
+.It
+Use
+.Xr execlineb 1 ,
+then
+.Xr elgetpositionals 1 ,
+then
+.Ql emptyenv -P
+if you need the full power of positional parameter handling.
+.El
+.Sh EXAMPLES
+Suppose you want to run the long-lived program
+.Ar prog
+after printing the list of its arguments.
+.Bd -literal -offset indent
+#!/command/execlineb
+elgetpositionals
+foreground { echo $0 $@ }
+prog $@
+.Ed
+.Pp
+will work, but will pollute
+.Ar prog Ap
+s environment with a set of positional parameters that have no meaning
+to it.
+A better script is:
+.Bd -literal -offset indent
+#!/command/execlineb
+elgetpositionals
+foreground { echo $0 $@ }
+emptyenv -P
+prog $@
+.Ed
+.Pp
+which will run
+.Ar prog
+with the same environment as the script's caller.
+.Sh SEE ALSO
+.Xr elgetopt 1 ,
+.Xr elgetpositionals 1 ,
+.Xr emptyenv 1 ,
+.Xr execlineb 1 ,
+.Xr runblock 1 ,
+.Xr shift 1
+.Pp
+[1]
+.Lk https://skarnet.org/software/s6/
+.Pp
+[2]
+.Lk http://smarden.org/runit/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/el_pushenv.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

@@ -1,0 +1,103 @@
+.Dd February 14, 2021
+.Dt PIPELINE 1
+.Os
+.Sh NAME
+.Nm pipeline
+.Nd run two commands with a pipe between them
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl d
+.Op Fl r | Fl w
+{
+.Ar prog1...
+}
+.Ar prog2...
+.Sh DESCRIPTION
+.Nm
+reads
+.Ar prog1...
+in a block
+.Po
+cf.\&
+.Xr execline-block 7
+.Pc
+and unquotes it.
+.Pp
+It runs
+.Ar prog1...
+as a child process and
+.Xr exec 3 Ns
+s into
+.Ar prog2... ,
+with a pipe between
+.Ar prog1 Ap
+s stdout and
+.Ar prog2 Ap
+s stdin.
+.Pp
+.Ar prog1 Ap
+s pid is available in
+.Ar prog2
+as the
+.Ev \&!
+environment variable.
+.Pp
+You can easily create a chain of pipes:
+.Ql execlineb -Pc 'pipeline { a } pipeline { b } c'
+is roughly equivalent to
+.Ql sh -c 'exec a | b | c' ,
+except that shells usually run
+.Ql c
+as a child process like
+.Ql a
+and
+.Ql b ,
+and
+.Ql exec
+has no effect.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl d
+Run
+.Ar prog1...
+as a grandchild of
+.Nm .
+This is meant to prevent a zombie from hanging around if
+.Ar prog2...
+fails to wait for its children.
+.It Fl r
+Make
+.Ar prog1...
+the writer and
+.Ar prog2...
+the reader.
+This is the default.
+.It Fl w
+Make
+.Ar prog1...
+the reader and
+.Ar prog2...
+the writer.
+.El
+.Sh SEE ALSO
+.Xr background 1 ,
+.Xr backtick 1 ,
+.Xr execlineb 1 ,
+.Xr foreground 1 ,
+.Xr if 1 ,
+.Xr ifelse 1 ,
+.Xr ifte 1 ,
+.Xr ifthenelse 1 ,
+.Xr runblock 1 ,
+.Xr exec 3 ,
+.Xr execline-block 7
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/pipeline.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)
