@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd February 16, 2021
 .Dt IF 1
 .Os
 .Sh NAME
@@ -37,9 +37,14 @@ prints an error message then exits 128 plus the number of the signal that killed
 .Pp
 If
 .Ar prog1
-exits a non-zero status,
+exits with a non-zero code,
 .Nm
-exits 1.
+exits with an approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc
+of that code.
 .Pp
 Else
 .Nm
@@ -77,18 +82,28 @@ as a non-zero
 .Dq false
 .Pc
 exit.
+This is mostly useful in combination with
+.Fl n .
 .It Fl n
-Negate the test (exit on true,
+Negate the test.
+If
+.Ar prog1
+exits true, then
+.Nm
+will exit 1; else it will
 .Xr exec 3
 into
-.Ar prog2
-on false).
+.Ar prog2 .
 .It Fl x Ar exitcode
-Exit
+If
+.Nm
+needs to exit, it will exit
 .Ar exitcode
-instead of 1 if the test fails.
+instead of whatever else it would have exited.
 .It Fl t
-Exit 0 instead of 1 if the test fails.
+If
+.Nm if
+needs to exit, it will exit 0.
 This is equivalent to
 .Ql -x 0 .
 .El

@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd February 16, 2021
 .Dt FDMOVE 1
 .Os
 .Sh NAME
@@ -29,13 +29,29 @@ closes it before moving
 .Ar fdfrom
 to it.
 .Pp
-.Ql fdmove -c Ar a Ar b Ar prog...
-is roughly equivalent to
-.Ql sh -c 'exec Ar prog... Ar a Ns >& Ns Ar b' .
-.Pp
 .Ql fdmove Ar a Ar b Ar prog...
 is roughly equivalent to
 .Ql sh -c 'exec Ar prog... Ar a Ns >& Ns Ar b Ar b Ns <&-' .
+It means: if you write to fd
+.Ar a
+now, it will have the same effect as writing to fd
+.Ar b
+beforehand, and you cannot write to fd
+.Ar b
+anymore.
+.Pp
+.Ql fdmove -c Ar a Ar b Ar prog...
+is roughly equivalent to
+.Ql sh -c 'exec Ar prog... Ar a Ns >& Ns Ar b Ns ' .
+It means: you can now write to fd
+.Ar a ,
+and also still write to fd
+.Ar b ,
+and both will have the same effect as writing to fd
+.Ar b
+beforehand.
+.Pp
+It also works with file descriptors that are open for reading!
 .Sh OPTIONS
 .Bl -tag -width x
 .It Fl c

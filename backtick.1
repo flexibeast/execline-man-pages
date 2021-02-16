@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd February 16, 2021
 .Dt BACKTICK 1
 .Os
 .Sh NAME
@@ -9,7 +9,7 @@ In an
 .Xr execlineb 1
 script:
 .Nm
-.Op Fl i | Fl I | Fl D Ar default
+.Op Fl i | Fl I | Fl x | Fl D Ar default
 .Op Fl N | Fl n
 .Op [ -E | -e
 .Ar variable
@@ -78,8 +78,27 @@ crashes or exits nonzero:
 .Bl -tag -width x
 .It Fl i
 .Nm
-exits 1.
+exits with an approximation
+.Po
+cf.\&
+.Xr execline-exitcodes 7
+.Pc
+of
+.Ar prog1 Ap
+s exit code, or 124 if
+.Ar prog1
+wrote a null character.
+This is the default.
 .It Fl I
+The value of
+.Ar variable
+is set to whatever the start of
+.Ar prog1... Ap
+s output is, up to the first null character, or to whatever
+.Ar prog1...
+wrote before crashing; chomping is applied if required; then execution
+proceeds.
+.It Fl x
 .Ar variable
 is
 .Sy removed
@@ -91,14 +110,6 @@ is set to
 .Ar default ,
 and execution proceeds.
 .El
-.Pp
-If none of those options are specified, the value of
-.Ar variable
-is set to whatever the start of
-.Ar prog1... Ap
-s output is, up to the first null character, or to whatever
-.Ar prog1...
-wrote before crashing; then execution proceeds.
 .Sh SEE ALSO
 .Xr background 1 ,
 .Xr foreground 1 ,
