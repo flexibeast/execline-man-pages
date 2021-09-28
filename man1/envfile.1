@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd September 29, 2021
 .Dt ENVFILE 1
 .Os
 .Sh NAME
@@ -92,7 +92,7 @@ The variables that can be defined with
 are purposefully restricted.
 If you need more expressive power for your variable names, or for your
 values, you should use an envdir instead: see
-.Xr s6-envdir 1 .
+.Xr s6-envdir 8 .
 .Sh OPTIONS
 .Bl -tag -width x
 .It Fl i
@@ -159,14 +159,14 @@ does not exit: it execs into
 .Xr posix-cd 1 ,
 .Xr posix-umask 1 ,
 .Xr redirfd 1 ,
-.Xr s6-envdir 1 ,
 .Xr trap 1 ,
 .Xr tryexec 1 ,
 .Xr unexport 1 ,
 .Xr wait 1 ,
 .Xr withstdinas 1 ,
 .Xr execve 2 ,
-.Xr exec 3
+.Xr exec 3 ,
+.Xr s6-envdir 8
 .Pp
 [1]
 .Lk https://www.freedesktop.org/software/systemd/man/systemd.exec.html#EnvironmentFile=

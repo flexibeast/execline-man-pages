@@ -20,5 +20,5 @@ HTML versions can be produced with
 [mandoc(1)](https://man.openbsd.org/mandoc.1)'s `-T` flag:
 
 ```
-$ mandoc -T html background.1 > background.1.html
+$ mandoc -T html man1/background.1 > background.1.html
 ```
