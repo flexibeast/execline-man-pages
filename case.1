@@ -1,0 +1,201 @@
+.Dd September 28, 2021
+.Dt CASE 1
+.Os
+.Sh NAME
+.Nm case
+.Nd compare a value against a series of regular expressions, and execute into a program depending on the first expression the value
+matches
+.Sh SYNOPSIS
+In an
+.Xr execlineb 1
+script:
+.Pp
+.Nm
+.Op Fl E | e
+.Op Fl i
+.Op Fl n | N
+.Ar value
+{
+.Bd -ragged -compact
+.Oo
+.Ar regex
+{
+.Ar prog...
+}
+.Oc
+.Ed
+.Bd -ragged -compact
+.Oo
+.Ar regex
+{
+.Ar prog...
+}
+.Oc
+.Ed
+.Ar ...
+.Bd -ragged -compact
+}
+.Ed
+.Bd -ragged -compact
+.Ar progdefault...
+.Ed
+.Sh DESCRIPTION
+.Nm
+reads an argument
+.Ar value
+and a sequence of directives in an
+.Xr execline-block 7 .
+.Pp
+Each directive is a regular expression followed by a block.
+.Pp
+.Nm
+matches
+.Ar value
+against the regular expressions in the order they are given.
+.Pp
+As soon as
+.Ar value
+matches a
+.Ar regex ,
+.Nm case
+executes into the
+.Ar prog...
+command line that immediately follows the matched regex.
+.Pp
+If
+.Ar value
+matches no
+.Ar regex ,
+.Nm
+eventually execs into
+.Ar progdefault... ,
+or exits 0 if
+.Ar progdefault...
+is empty.
+.Pp
+.Ar value
+must match
+.Ar regex
+as a full word.
+If only a substring of
+.Ar value
+matches
+.Ar regex ,
+it is not considered a match.
+.Pp
+If
+.Ar value
+matches no
+.Ar regex ,
+.Ar progdefault...
+is always executed with an unmodified environment, whether
+subexpression matching has been requested or not.
+.Sh OPTIONS
+.Bl -tag -width e
+.It Fl e
+Interpret the
+.Ar regex
+words as basic regular expressions[1].
+.It Fl E
+Interpret the
+.Ar regex
+words as extended regular expressions[2].
+This is the default.
+.It Fl i
+Perform case-insensitive matches.
+.It Fl N
+Make the matching expression and subexpressions available to
+.Ar prog Ap s
+environment.
+See the
+.Sx Subexpression matching
+section below.
+.It Fl n
+Do not transmit the matching expression and
+subexpressions to
+.Ar prog...
+via the environment.
+This is the default.
+.El
+.Ss Subexpression matching
+If the
+.Fl N
+option has been given, and
+.Ar value
+matches a
+.Ar regex ,
+then
+.Nm
+will run
+.Ar prog
+with a modified environment:
+.Bl -bullet -width x
+.It
+The
+.Ev 0
+variable will contain the
+.Ar regex
+that
+.Ar value
+matched.
+.It
+The
+.Ev #
+variable will contain the number of subexpressions in
+.Ar regex .
+.It
+For every integer
+.Va i
+between 1 and the number of subexpressions (included), the variable
+.Va i
+contains the part of
+.Ar value
+that matched the
+.Va i Ns th
+in
+.Ar regex .
+.El
+.Pp
+To retrieve that information into your command line in an execline
+script, you can use the
+.Xr elgetpositionals 1
+program.
+.Sh EXAMPLES
+Consider the following script; say it's named
+.Ql match .
+.Bd -literal -offset indent
+#!/bin/execlineb -S1
+emptyenv
+case -N -- $1
+{
+  "\e\e([fo]+\e\e)bar\e\e(baz\e\e)" { /usr/bin/env }
+}
+.Ed
+.Pp
+Running
+.Ql match foooobarbaz
+will print the following lines, corresponding to the output of the
+.Pa /usr/bin/env
+command:
+.Bd -literal -offset indent
+#=2
+0=\e([fo]+\e)bar\e(baz\e)
+1=foooo
+2=baz
+.Ed
+.Sh SEE ALSO
+.Xr elgetpositionals 1 ,
+.Xr execlineb 1 ,
+.Xr execline-block 7
+.Pp
+[1]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_03
+.Pp
+[2]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/case.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)

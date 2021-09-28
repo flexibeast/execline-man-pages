@@ -5,6 +5,7 @@ man7 = $(MANPATH)/man7/
 man1_targets = \
 	background.1 \
 	backtick.1 \
+	case.1 \
 	define.1 \
 	dollarat.1 \
 	elgetopt.1 \

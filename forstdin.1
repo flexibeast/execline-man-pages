@@ -1,4 +1,4 @@
-.Dd April 22, 2021
+.Dd September 28, 2021
 .Dt FORSTDIN 1
 .Os
 .Sh NAME
@@ -119,10 +119,8 @@ Chomp a terminating delimiter from the line from stdin before storing
 it into
 .Ar variable .
 This is the default.
-Note that if chomping is active,
-.Em and
-the last line of stdin is not terminated by a delimiter, then this
-last line will not be processed.
+Note that if chomping is active, and the last line of stdin is not
+terminated by a delimiter, then this last line will not be processed.
 .It Fl C
 Crunch.
 If there is an empty line (i.e. that only contains a delimiter), do
