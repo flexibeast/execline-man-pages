@@ -168,7 +168,7 @@ Consider the following script; say it's named
 emptyenv
 case -N -- $1
 {
-  "\e\e([fo]+\e\e)bar\e\e(baz\e\e)" { /usr/bin/env }
+  "([fo]+)bar(baz)" { /usr/bin/env }
 }
 .Ed
 .Pp
@@ -179,7 +179,7 @@ will print the following lines, corresponding to the output of the
 command:
 .Bd -literal -offset indent
 #=2
-0=\e([fo]+\e)bar\e(baz\e)
+0=([fo]+)bar(baz)
 1=foooo
 2=baz
 .Ed
