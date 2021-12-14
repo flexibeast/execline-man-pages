@@ -1,6 +1,8 @@
-MANPATH ?= /usr/share/man
-man1 = $(MANPATH)/man1/
-man7 = $(MANPATH)/man7/
+DESTDIR  =
+PREFIX   = /usr
+MANPATH ?= $(PREFIX)/share/man
+man1_dir = $(MANPATH)/man1
+man7_dir = $(MANPATH)/man7
 
 man1_targets = \
 	background.1 \
@@ -64,14 +66,15 @@ man7_targets = \
 	execline-substitute.7 \
 	execline-transform.7
 
-all: install
+all:
+	@echo "Nothing to be done. Ready for 'make install'."
 
 install:
-	cd man1; install -D -m 644 -t $(man1) $(man1_targets)
-	cd man7; install -D -m 644 -t $(man7) $(man7_targets)
+	cd man1; install -D -m 0644 -t ${DESTDIR}${man1_dir} $(man1_targets)
+	cd man7; install -D -m 0644 -t ${DESTDIR}${man7_dir} $(man7_targets)
 
 uninstall:
-	cd $(man1); rm -f $(man1_targets)
-	cd $(man7); rm -f $(man7_targets)
+	cd $(man1_dir); rm -f $(man1_targets)
+	cd $(man7_dir); rm -f $(man7_targets)
 
 .PHONY: all install uninstall
