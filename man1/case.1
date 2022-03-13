@@ -1,4 +1,4 @@
-.Dd September 28, 2021
+.Dd March 13, 2022
 .Dt CASE 1
 .Os
 .Sh NAME
@@ -11,6 +11,7 @@ In an
 script:
 .Pp
 .Nm
+.Op Fl S | s
 .Op Fl E | e
 .Op Fl i
 .Op Fl n | N
@@ -92,6 +93,22 @@ is always executed with an unmodified environment, whether
 subexpression matching has been requested or not.
 .Sh OPTIONS
 .Bl -tag -width e
+.It Fl s
+Shell matching.
+The
+.Ar regex
+words will not be interpreted as regular expressions, but as shell
+expressions to be interpreted via
+.Xr fnmatch 3 .
+The other options also change meanings, see the
+.Sx Shell matching
+section below.
+.It Fl S
+Regular expression matching.
+This is the default.
+This section, and all of the sections below except the
+.Sx Shell matching
+one, assumes that it is the case.
 .It Fl e
 Interpret the
 .Ar regex
@@ -160,6 +177,87 @@ To retrieve that information into your command line in an execline
 script, you can use the
 .Xr elgetpositionals 1
 program.
+.Ss Shell matching
+If the
+.Fl s
+option has been given to
+.Nm ,
+then the
+.Ar regex
+words are not interpreted as regular expressions, but as shell
+patterns, as is performed by the shell's case conditional
+construct[3].
+This has the following consequences:
+.Bl -bullet -width x
+.It
+Subexpression matching is always disabled.
+.It
+.Ar prog...
+is always executed with an unmodified environment.
+.It
+The options to the
+.Nm
+command change meanings: instead of controlling how the
+.Ar regex
+regular expressions are interpreted by the
+.Xr regcomp 3
++primitive, they now control how
+.Ar value
+is matched against the
+.Ar regex
+patterns (which are not regular expressions!) via the
+.Xr fnmatch 3
++primitive.
+Namely:
+.Bl -tag -width x
+.It Fl e
+Treat a backslash as an ordinary character; do not allow character
+escaping in patterns.
+.Po
+This sets the
+.Dv FNM_NOESCAPE
+flag.
+.Pc
+.It Fl E
+Allow backslash escaping in patterns.
+This is the default.
+.Po
+This clears the
+.Dv FNM_NOESCAPE
+flag.
+.Pc
+.It Fl i
+Treat a period
+.Po
+.Ql .
+.Pc
+as a special character for matching
+.Po
+set
+.Dv FNM_PERIOD
+.Pc .
+By default, the period is not a special character
+.Po
+.Dv FNM_PERIOD
+is cleared
+.Pc .
+.It Fl N
+Treat patterns as pathnames: make slashes character special.
+.Po
+This sets the
+.Dv FNM_PATHNAME
+flag.
+.Pc
+.It Fl n
+Do not treat patterns as pathnames
+.Po
+clear the
+.Dv FNM_PATHNAME
+flag
+.Pc .
+This is the default.
+.El
+.El
 .Sh EXAMPLES
 Consider the following script; say it's named
 .Ql match .
@@ -193,6 +291,9 @@ command:
 .Pp
 [2]
 .Lk https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html#tag_09_04
+.Pp
+[3]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_09_04_05
 .Pp
 This man page is ported from the authoritative documentation at:
 .Lk https://skarnet.org/software/execline/case.html

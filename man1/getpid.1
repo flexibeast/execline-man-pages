@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd March 13, 2022
 .Dt GETPID 1
 .Os
 .Sh NAME
@@ -7,6 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl E | Fl e
+.Op Fl P | Fl p
 .Ar var
 .Ar prog...
 .Sh DESCRIPTION
@@ -42,6 +43,14 @@ into
 This substitutes
 .Ar var
 into the command line instead of putting it into the environment.
+.It Fl p
+Get the pid of the current process.
+This is the default.
+.It Fl P
+Use
+.Nm Ap s
+.Em parent
+pid instead.
 .El
 .Sh SEE ALSO
 .Xr emptyenv 1 ,
