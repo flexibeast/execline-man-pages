@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd May 31, 2022
 .Dt WAIT 1
 .Os
 .Sh NAME
@@ -11,6 +11,7 @@ script:
 .Pp
 .Nm
 .Op Fl I | Fl i
+.Op Fl a | Fl o
 .Op Fl r | Fl t Ar timeout
 {
 .Op Ar pids...
@@ -43,10 +44,13 @@ s into
 For POSIX compatibility[1],
 .Nm
 also works when it cannot find a block.
-In that case, all its command line is interpreted as
+In that case, all the options are still supported and have the same
+effect, but the rest of the command line is interpreted as
 .Ar pids...
-arguments and it does not execute into a program.
-Instead, it exits with a conforming exit code.
+arguments and
+.Nm
+does not execute into a program; instead, it exits with a conforming
+exit code.
 .Sh OPTIONS
 .Bl -tag -width x
 .It Fl r
@@ -81,7 +85,50 @@ This is the default.
 Strict.
 If
 .Nm
-times out, it will print an error message and exit 1.
+times out, it will print an error message and exit 99.
+.It Fl o
+Wait for
+.Em one
+of the listed
+.Ar pids
+-
+.Xr exec 3
+into
+.Ar prog
+as soon as one of the listed children dies.
+.Po
+If no pid is listed, wait for one child to die.
+.Pc
+The
+.Ev !\&
+environment variable will be set to the pid that died, and the
+.Ev ?\&
+environment variable will contain an approximation of its exit code -
+refer to
+.Xr execline-exitcodes 7 .
+If no listed child has died before
+.Nm
+has to
+.Xr exec 3
+.Po
+either because it timed out or it has no suitable children left
+.Pc ,
+the
+.Ev ?\&
+and
+.Ev !\&
+environment variables are unset.
+.It Fl a
+Wait for
+.Em all
+of the listed
+.Ar pids .
+Do not touch the
+.Ev !\&
+or
+.Ev ?\&
+variables.
+This is the default.
 .El
 .Sh SEE ALSO
 .Xr emptyenv 1 ,

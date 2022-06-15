@@ -1,4 +1,4 @@
-.Dd February 16, 2021
+.Dd May 31, 2022
 .Dt EXECLINEB 1
 .Os
 .Sh NAME
@@ -171,6 +171,8 @@ hexadecimal number
 sequences are recognized in quoted strings and evaluate to ASCII octal
 number
 .Ar abc .
+.Ar abc
+must not be greater than 377, or evaluate to 0.
 .It
 .Ql \e Ns Ar abc
 sequences are recognized in quoted strings and evaluate to ASCII
@@ -178,6 +180,8 @@ decimal number
 .Ar abc .
 .Ar a
 must not be zero.
+.Ar abc
+must not be greater than 255, or evaluate to 0.
 .It
 A comment starts with a
 .Ql #
@@ -192,6 +196,11 @@ Any character can be escaped in unquoted strings by prepending it with
 a backslash.
 It works the same way in quoted strings, except for the special
 sequences described above.
+.It
+As a special case, an unquoted backslash at the end of a line, or at
+the end of the input, is ignored.
+This is to make it easier to copy execline fragments from a shell
+script.
 .El
 .Pp
 You can see an example of distinct
