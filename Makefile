@@ -13,6 +13,7 @@ man1_targets = \
 	elgetopt.1 \
 	elgetpositionals.1 \
 	elglob.1 \
+	eltest.1 \
 	emptyenv.1 \
 	envfile.1 \
 	exec.1 \

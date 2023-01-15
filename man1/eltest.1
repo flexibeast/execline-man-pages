@@ -1,0 +1,256 @@
+.Dd January 15, 2023
+.Dt ELTEST 1
+.Os
+.Sh NAME
+.Nm eltest
+.Nd evaluate an expression and indicate the result via its exit status
+.Sh SYNOPSIS
+.Nm
+.Ar expression...
+.Sh DESCRIPTION
+.Nm
+acts as the generic POSIX
+.Pa test\&
+utility[1], but it diverges from the specification on how it parses
+ambiguous arguments, see below.
+.Pp
+.Nm
+supports all the standard
+.Pa test\&
+operands, plus all the extensions from GNU test[2], plus a few
+extensions from the
+.Ql test
+builtin from bash[3].
+The extensions to POSIX
+.Pa test\&
+are listed below.
+.Pp
+.Nm
+accepts an arbitrary number of arguments and, if the expression is
+valid, always returns the result of the expression no matter how
+complex it is.
+.Ss Extensions
+.Bl -tag -width x
+.It Ar expr1 No -a Ar expr2
+Test whether
+.Ar expr1
+.Em and
+.Ar expr2
+are true.
+If
+.Ar expr1
+is false, then
+.Ar expr2
+is not evaluated.
+.It Ar expr1 No -o Ar expr2
+Test whether
+.Ar expr1
+.Em or
+.Ar expr2
+is true.
+If
+.Ar expr1
+is true, then
+.Ar expr2
+is not evaluated.
+.It No -k Ar file
+Test whether
+.Ar file
+has the sticky bit.
+.It No -O Ar file
+Test whether
+.Ar file
+is owned by the effective uid of the current process.
+.It No -U Ar file
+As for
+.Ql -O .
+.It No -G Ar file
+Test whether
+.Ar file Ap
+s gid is the effective gid of the current process.
+.It No -N Ar file
+Test whether
+.Ar file
+exists and has been modified since it was last read.
+.It Ar file1 No -nt Ar file2
+Test whether
+.Ar file1
+has a (strictly) newer modification date than
+.Ar file2 .
+.It Ar file1 No -ot Ar file2
+Test whether
+.Ar file1
+has a (strictly) older modification date than
+.Ar file2 .
+.It Ar file1 No -ef Ar file2
+Test whether
+.Ar file1
+and
+.Ar file2
+are physically the same file (same device and inode numbers).
+.It No -v Ar var
+Test whether the
+.Ar var
+variable is defined in the current environment.
+.It Ar string No =~ Ar pattern
+Tries to match
+.Ar string
+against extended regular expression
+.Ar pattern .
+True if any part of
+.Ar string
+matches
+.Ar pattern ;
+in order to match whole strings, you must anchor
+.Ar pattern
+with
+.Ql ^
+and
+.Ql $
+markers.
+.El
+.Ss Argument disambiguation
+Unlike
+.Pa test Ns
+[1], which has different fixed syntax trees depending on the number of
+arguments it receives and has undefined behaviour when called with
+more than 5 arguments,
+.Nm
+accepts any
+number of arguments and builds its syntax trees on the fly.
+This means that expressions such
+as
+.Ql -n = -n
+cannot be automatically disambiguated:
+.Nm
+does not know that
+there are 3 arguments, so when it reads the first
+.Ql -n
+it assumes that it is an unary operator, then when it reads
+.Ql =
+it assumes it is the argument to
+.Ql -n ,
+then when it reads the second
+.Ql -n
+it exits with a syntax error.
+.Pp
+Doing otherwise would result in a combinatory explosion of possible
+syntax trees, making it easy for users to trigger unbounded RAM
+consumption, and turning a simple utility into a programming
+nightmare.
+This is why POSIX
+.Pa test Ns
+[1] is so restricted.
+But we don't want the same restrictions.
+.Pp
+So, instead,
+.Nm
+provides the user with a mechanism to make sure that operands are
+never mistaken for operators:
+.Bl -bullet -width x
+.It
+A word that looks like an operator will always be interpreted like an operator.
+So, expressions like
+.Ql -n = -n
+will result in a syntax error, because the first
+.Ql -n
+will never be understood as data for the
+.Ql =
+operator.
+.It
+A word that starts with a
+.Ql \e
+(backslash) will always be interpreted like data, never like an
+operator, and the backslash will be removed.
+This means
+.Ql \e-n = \e-n
+is a valid expression testing the equality between
+the strings
+.Ql -n
+and
+.Ql -n .
+.Bl -bullet -width x
+.It
+Be aware that execline as well as the shell use one backlash for their
+own unquoting mechanism, so when using backslashes in an execline or
+shell script, they must be doubled.
+You would probably need to type something like
+.Ql \e\e-n = \e\e-n .
+.El
+.It
+So, if your script tests equality between
+.Ql $a
+and
+.Ql $b ,
+and there's a possiblity that the contents of these variables look like
+.Nm
+operators, the proper syntax would be:
+.Ql eltest \e\e${a} = \e\e${b} .
+.El
+.Pp
+Note that these details are irrelevant to a huge majority of
+.Nm
+use cases, because most of the time users only need a simple test
+such as
+.Ql eltest -r ${file}
+to check that
+.Ql $file
+is readable, and there's no possible ambiguity.
+So don't panic over this.
+.Ss Notes
+.Nm
+is a replacement for the ill-named, and now deprecated,
+.Xr s6-test 1
+program, part of the (just as ill-named) s6-portable-utils[4] package.
+It is too valuable a utility to be part of a marginal package, and has
+nothing to do with s6[5].
+.Sh OPTIONS
+None.
+.Sh EXIT STATUS
+.Bl -tag -width x
+.It 0
+The test is true.
+.It 1
+The test is false.
+.It 100
+Wrong usage.
+.It 101
+Internal error (should never happen, warrants a bug-report).
+.It 111
+System call failure.
+.El
+.Sh SEE ALSO
+[1]
+.Lk https://pubs.opengroup.org/onlinepubs/9699919799/utilities/test.html
+.Pp
+[2]
+.Lk https://man7.org/linux/man-pages/man1/test.1.html
+.Pp
+[3]
+.Lk https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Bash-Conditional-Expressions
+.Pp
+[4]
+.Lk https://skarnet.org/software/s6-portable-utils/
+.Pp
+[5]
+.Lk https://skarnet.org/software/s6/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/eltest.html
+.Sh STANDARDS
+.Nm
+.Em is not
+suitable as a Single Unix
+.Pa test Ns
+[1] program, due to the way it disambiguates between arguments and
+operators, as described in the
+.Sx Argument diambiguation
+section.
+However, if you never use arguments that start with a backslash, or
+that have the same name as an existing operator, then
+.Nm
+exhibits the same behaviour as
+.Pa test .
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)
