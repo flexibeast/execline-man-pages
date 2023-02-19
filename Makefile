@@ -17,6 +17,7 @@ man1_targets = \
 	emptyenv.1 \
 	envfile.1 \
 	exec.1 \
+	execline.1 \
 	execline-cd.1 \
 	execline-shell.1 \
 	execline-startup.1 \
