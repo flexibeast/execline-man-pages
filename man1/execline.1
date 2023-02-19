@@ -1,0 +1,101 @@
+.Dd February 19, 2023
+.Dt EXECLINE 1
+.Os
+.Sh NAME
+.Nm execline
+.Nd multicall binary for the execline suite
+.Sh SYNOPSIS
+.Nm
+.Ar subcommand
+.Ar subcommand_arguments...
+.Sh DESCRIPTION
+The
+.Nm
+program is only available when the
+.Ql --enable-multicall
+option has been given to the
+.Pa configure
+program at build time.
+In this configuration,
+.Nm
+is a multicall binary implementing the functionality of
+.Em all
+the programs in the execline package; and the other programs, instead
+of being executables of their own, are symbolic links to the
+execline binary.
+.Pp
+.Nm
+will run the
+.Ar subcommand
+with its arguments.
+For instance,
+.Ql execline cd / ls
+will run the equivalent of the
+.Xr execline-cd 1
+program, so this command will list the contents of the
+.Pa /
+directory.
+.Pp
+Alternatively, if
+.Nm
+is called with the name of an existing command, it will run the
+equivalent of that command.
+For instance, if the
+.Pa /usr/bin/cd
+file is a (hard or symbolic) link to the
+.Pa execline
+binary,
+.Ql /usr/bin/cd / ls
+will list the contents of the
+.Pa /
+directory.
+.Pp
+The
+.Ql --enable-multicall
+option is a user-requested feature to save disk space.
+Its goal is purely to save disk space; functionality-wise, the
+execline package should be the exact same whether it has been built
+with
+.Ql --enable-multicall
+or not.
+That means: any execline script should work the exact same way.
+.Pp
+Multicall binaries have a number of issues, most of them hidden from
+regular users.
+One user-visible issue is that their behaviour changes depending on
+how they are called, which is not good practice (it breaks naming
+agnosticism) despite being common in traditional Unix.
+Other, more important issues are only visible to software authors and
+maintainers: for instance, they make it difficult to add functionality
+to a software package without inadvertently blowing up the amount of
+RAM used by the software, and they encourage bad engineering practices
+to work around specific problems created by this configuration.
+.Pp
+I am not a fan of multicall binaries at all.
+.Pp
+However, it just so happens that the execline package already was a
+good candidate for a multicall configuration, and several users had
+been asking for it (and complaining about the amount of disk space
+that the traditional execline package uses).
+So I did an experiment, and it turned out that a multicall execline
+binary does save a
+.Em huge
+amount of space.
+Depending on your shared/static library configuration and your libc,
+the gain in disk space on Linux can range from 66% to 87%!
+The results were contrary to my expectations \(em and simply too good
+to pass up.
+.Pp
+So now, the multicall configuration is supported for execline.
+Do not expect anything similar for other skarnet.org packages such as
+s6[1], because they're not as good candidates and it would require a
+tremendous amount of work for less benefit.
+.Sh SEE ALSO
+[1]
+.Lk https://skarnet.org/software/s6/
+.Pp
+This man page is ported from the authoritative documentation at:
+.Lk https://skarnet.org/software/execline/execline.html
+.Sh AUTHORS
+.An Laurent Bercot
+.An Alexis Ao Mt flexibeast@gmail.com Ac (man page port)
