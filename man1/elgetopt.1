@@ -1,4 +1,4 @@
-.Dd February 14, 2021
+.Dd April 3, 2023
 .Dt ELGETOPT 1
 .Os
 .Sh NAME
@@ -8,6 +8,7 @@
 -style parsing on the arguments to an execline script
 .Sh SYNOPSIS
 .Nm
+.Op Fl D Ar default
 .Ar optstring
 .Ar prog...
 .Sh DESCRIPTION
@@ -55,7 +56,14 @@ sets the
 environment variable.
 The value of that variable is the argument to the
 .Fl c
-switch if it has one, and 1 otherwise.
+switch if it has one, and
+.Ql 1
+.Po
+or
+.Ar default
+if given
+.Pc
+otherwise.
 .Pp
 After setting all recognized options,
 .Nm
@@ -72,6 +80,21 @@ then execs into
 .Ar prog... .
 .Pp
 GNU-style options are not supported.
+.Sh OPTIONS
+.Bl -tag -width x
+.It Fl D Ar default
+Use
+.Ar default
+as the value for the
+.Ev ELGETOPT_ Ns Ar c
+environment variable if there is no argument to the
+.Fl c
+switch.
+Default is
+.Ql 1 .
+The value is the same for all the options defined by
+.Nm .
+.El
 .Sh SEE ALSO
 .Xr dollarat 1 ,
 .Xr getopt 1 ,
