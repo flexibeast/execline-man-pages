@@ -10,7 +10,7 @@ issue in this repository.
 To install the man pages, run `make`.
 
 The default installation directory is `/usr/share/man`, but this can
-be changed by setting the `MANPATH` environment variable prior to
+be changed by setting the `MAN_DIR` environment variable prior to
 running `make`.  The user running `make` will need to have the
 appropriate permissions for installation in the chosen directory.
 

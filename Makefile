@@ -1,8 +1,8 @@
 DESTDIR  =
 PREFIX   = /usr
-MANPATH ?= $(PREFIX)/share/man
-man1_dir = $(MANPATH)/man1
-man7_dir = $(MANPATH)/man7
+MAN_DIR ?= $(PREFIX)/share/man
+man1_dir = $(MAN_DIR)/man1
+man7_dir = $(MAN_DIR)/man7
 
 man1_targets = \
 	background.1 \
